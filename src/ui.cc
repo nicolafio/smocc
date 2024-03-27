@@ -10,7 +10,6 @@ using namespace std;
 namespace fs = std::filesystem;
 
 TTF_Font* font;
-SDL_Color white = {255, 255, 255, 255};
 SDL_Color black = {0, 0, 0, 255};
 SDL_Surface* helloWorldSurface;
 SDL_Texture* helloWorldTexture;
@@ -35,7 +34,7 @@ void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
         exit(1);
     }
 
-    helloWorldSurface = TTF_RenderText_Shaded(font, "Hello, world!", black, white);
+    helloWorldSurface = TTF_RenderText_Solid(font, "Hello, world!", black);
     helloWorldTexture = SDL_CreateTextureFromSurface(renderer, helloWorldSurface);
 }
 
