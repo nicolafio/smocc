@@ -63,7 +63,7 @@ void event(SDL_Event *e)
 
     if (type == SDL_QUIT)
     {
-        quit = true;;
+        quit = true;
         return;
     }
 }
