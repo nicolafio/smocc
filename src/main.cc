@@ -6,7 +6,7 @@ using namespace std;
 #include "main.h"
 #include "ui.h"
 
-#define WINDOW_WIDTH  1280
+#define WINDOW_WIDTH  1000
 #define WINDOW_HEIGHT 720
 #define GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS 8
 
