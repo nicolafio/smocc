@@ -6,7 +6,7 @@ process=0
 
 get_sources_hash() {
     hash=""
-    sources=$(find $sources_dir -type f)
+    sources=Makefile $(find $sources_dir -type f)
     for file in $sources
     do
         hash="$hash$(md5 -q $file)"
