@@ -1,6 +1,7 @@
-#include <stdio.h>
+#include <iostream>
 #include <SDL.h>
-#include <stdbool.h>
+
+using namespace std;
 
 #include "main.h"
 
@@ -41,7 +42,7 @@ void init()
 {
     if (SDL_Init(SDL_INIT_VIDEO))
     {
-        printf("Couldn't initialize SDL: %s\n", SDL_GetError());
+        cerr << "Failed to initialize SDL: " << SDL_GetError() << endl;
         exit(1);
     }
 
@@ -51,7 +52,7 @@ void init()
 
     if (SDL_CreateWindowAndRenderer(w, h, flags, &window, &renderer))
     {
-        printf("Failed to open window: %s\n", SDL_GetError());
+        cerr << "Failed to open window: " << SDL_GetError() << endl;
         exit(1);
     }
 }
