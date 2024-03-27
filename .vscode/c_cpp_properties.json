@@ -15,8 +15,10 @@
             "cppStandard": "c++17",
             "intelliSenseMode": "macos-clang-arm64",
             "compilerArgs": [
+                "-std=c++17",
                 "-D_THREAD_SAFE",
-                "-lSDL2"
+                "-lSDL2",
+                "-lSDL2_ttf"
             ]
         }
     ],

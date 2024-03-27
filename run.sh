@@ -1,12 +1,12 @@
 #!/bin/bash
 
 sources_dir=./src
-executable=./build/smocc
+executable=out/smocc
 process=0
 
 get_sources_hash() {
     hash=""
-    sources=Makefile $(find $sources_dir -type f)
+    sources="Makefile $(find $sources_dir -type f)"
     for file in $sources
     do
         hash="$hash$(md5 -q $file)"
@@ -27,7 +27,7 @@ while true
 do
     clear
     make clean
-    make build
+    make $executable
 
     if [ $process -ne 0 ]
     then kill $process

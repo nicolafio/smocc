@@ -4,6 +4,7 @@
 using namespace std;
 
 #include "main.h"
+#include "ui.h"
 
 #define WINDOW_WIDTH  1280
 #define WINDOW_HEIGHT 720
@@ -13,9 +14,9 @@ SDL_Window   *window;
 SDL_Renderer *renderer;
 bool         quit = false;
 
-int main()
+int main(int argc, char* argv[])
 {
-    init();
+    init(argc, argv);
 
     atexit(cleanup);
 
@@ -38,7 +39,7 @@ int main()
     }
 }
 
-void init()
+void init(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO))
     {
@@ -55,6 +56,8 @@ void init()
         cerr << "Failed to open window: " << SDL_GetError() << endl;
         exit(1);
     }
+
+    ui::init(argc, argv, renderer);
 }
 
 void event(SDL_Event *e)
@@ -70,11 +73,13 @@ void event(SDL_Event *e)
 
 void update()
 {
-
+    ui::update(renderer, window);
 }
 
 void cleanup()
 {
+    ui::cleanup();
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();

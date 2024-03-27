@@ -1,2 +1,3 @@
-build
+out/smocc
+obj
 .DS_Store

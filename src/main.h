@@ -1,8 +1,8 @@
 #pragma once
 
-int main();
+int main(int, char**);
 
-void init();
+void init(int, char**);
 
 void event(SDL_Event *e);
 

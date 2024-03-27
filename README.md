@@ -12,12 +12,23 @@ _These instructions are for macOS._
 * Install Microsoft's [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extension.
 * Install [Homebrew].
 * Install [SDL2]: `brew install sdl2`
+* Install [SDL2_ttf](https://wiki.libsdl.org/SDL2_ttf/FrontPage): `brew install sdl2_ttf`
 
 [VSCodium]: https://vscodium.com
 [VSCode]: https://code.visualstudio.com
 [Homebrew]: https://brew.sh/
 [SDL2]: https://wiki.libsdl.org/SDL2/Installation
 [Switching extension registry to VScode]: #switching-extension-registry-to-vscode
+
+## Credits
+
+This software comes with this external content:
+
+* [Inconsolate LGC] font by [MihailJP] lincesed under
+  [SIL OFL](out/inconsolata-lgc/LICENSE).
+
+[MihailJP]: https://github.com/MihailJP
+[Inconsolate LGC]: https://github.com/MihailJP/Inconsolata-LGC
 
 ## License
 
