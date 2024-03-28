@@ -95,40 +95,88 @@ SDL_Texture* createText(
     return texture;
 }
 
-SDL_Rect renderMenuButton(
-    SDL_Renderer* renderer,
+SDL_Rect getTextureSize(SDL_Texture* texture)
+{
+    SDL_Rect size;
+    size.x = 0;
+    size.y = 0;
+
+    if (SDL_QueryTexture(texture, NULL, NULL, &size.w, &size.h))
+    {
+        cerr << "Failed to query texture width and height: ";
+        cerr << SDL_GetError() << endl;
+        exit(1);
+    }
+
+    return size;
+}
+
+int getTextureHeight(SDL_Texture* texture)
+{
+    int height;
+
+    if (SDL_QueryTexture(texture, NULL, NULL, NULL, &height))
+    {
+        cerr << "Failed to query texture height: " << SDL_GetError() << endl;
+        exit(1);
+    }
+
+    return height;
+}
+
+SDL_Rect computeMenuButtonRect(
     SDL_Rect* windowRect,
     SDL_Texture* textTexture,
     int yPosition
 ) {
-    int textWidth, textHeight;
-
-    SDL_QueryTexture(textTexture, NULL, NULL, &textWidth, &textHeight);
-
     SDL_Rect buttonRect;
     buttonRect.w = MENU_BTN_WIDTH_PIXELS;
-    buttonRect.h = textHeight + 2 * MENU_BTN_PADDING_PIXELS;
+    buttonRect.h = getTextureHeight(textTexture) + 2 * MENU_BTN_PADDING_PIXELS;
     buttonRect.x = (windowRect->w - buttonRect.w) / 2;
     buttonRect.y = yPosition;
 
-    SDL_Rect textRect;
-    textRect.w = textWidth;
-    textRect.h = textHeight;
-    textRect.x = (windowRect->w - textRect.w) / 2;
-    textRect.y = buttonRect.y + MENU_BTN_PADDING_PIXELS;
+    return buttonRect;
+}
+
+void renderMenuButton(
+    SDL_Renderer* renderer,
+    SDL_Rect* buttonRect,
+    SDL_Texture* textTexture
+) {
+    SDL_Rect textRect = getTextureSize(textTexture);
+
+    textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
+    textRect.y = buttonRect->y + MENU_BTN_PADDING_PIXELS;
 
     int r = btnBorderColor.r;
     int g = btnBorderColor.g;
     int b = btnBorderColor.b;
     int a = btnBorderColor.a;
 
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderDrawRect(renderer, &buttonRect);
+    if (SDL_SetRenderDrawColor(renderer, r, g, b, a))
+    {
+        cerr << "Failed to set render draw color: " << SDL_GetError() << endl;
+        exit(1);
+    }
 
-    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+    if (SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND))
+    {
+        cerr << "Failed to set render draw blend mode: ";
+        cerr << SDL_GetError() << endl;
+        exit(1);
+    }
 
-    return buttonRect;
+    if (SDL_RenderDrawRect(renderer, buttonRect))
+    {
+        cerr << "Failed to render rectangle: " << SDL_GetError() << endl;
+        exit(1);
+    }
+
+    if (SDL_RenderCopy(renderer, textTexture, NULL, &textRect))
+    {
+        cerr << "Failed to render text: " << SDL_GetError() << endl;
+        exit(1);
+    }
 }
 
 void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
@@ -174,12 +222,9 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
     titleRect.x = (windowRect.w - titleRect.w) / 2;
     titleRect.y = uiRect.y + TITLE_MARGINS_PIXELS;
 
-    SDL_RenderCopy(renderer, titleTexture, NULL, &titleRect);
-
     int playBtnYPosition = titleRect.y + titleRect.h + TITLE_MARGINS_PIXELS;
 
-    SDL_Rect playBtnRect = renderMenuButton(
-        renderer,
+    SDL_Rect playBtnRect = computeMenuButtonRect(
         &windowRect,
         playBtnTextTexture,
         playBtnYPosition
@@ -187,12 +232,20 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
 
     int infoBtnYPosition = playBtnRect.y + playBtnRect.h + MENU_BTN_MARGIN_PIXELS;
 
-    SDL_Rect infoBtnRect = renderMenuButton(
-        renderer,
+    SDL_Rect infoBtnRect = computeMenuButtonRect(
         &windowRect,
         infoBtnTextTexture,
         infoBtnYPosition
     );
+
+    if (SDL_RenderCopy(renderer, titleTexture, NULL, &titleRect))
+    {
+        cerr << "Failed to render title: " << SDL_GetError() << endl;
+        exit(1);
+    };
+
+    renderMenuButton(renderer, &playBtnRect, playBtnTextTexture);
+    renderMenuButton(renderer, &infoBtnRect, infoBtnTextTexture);
 }
 
 void ui::cleanup()
