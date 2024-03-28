@@ -106,6 +106,7 @@ void ui::cleanup()
     SDL_FreeSurface(titleSurface);
     SDL_DestroyTexture(helloWorldTexture);
     SDL_FreeSurface(helloWorldSurface);
+    TTF_CloseFont(titleFont);
     TTF_CloseFont(font);
     TTF_Quit();
 }
