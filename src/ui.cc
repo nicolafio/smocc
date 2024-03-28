@@ -30,6 +30,9 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+SDL_Cursor* arrowCursor;
+SDL_Cursor* handCursor;
+
 TTF_Font* titleFont;
 TTF_Font* font;
 
@@ -52,6 +55,19 @@ SDL_Texture* infoBtnTextTexture;
 SDL_Texture* infoBtnTextHoverTexture;
 
 int titleWidth, titleHeight;
+
+SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
+{
+    SDL_Cursor* newCursor = SDL_CreateSystemCursor(cursor);
+
+    if (!newCursor)
+    {
+        cerr << "Failed to create system cursor: " << SDL_GetError() << endl;
+        exit(1);
+    }
+
+    return newCursor;
+}
 
 bool isPointInRect(int x, int y, SDL_Rect* rect)
 {
@@ -238,6 +254,9 @@ void renderMenuButton(
 
 void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
 {
+    arrowCursor = createSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    handCursor = createSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+
     if (TTF_Init())
     {
         cerr << "Failed to initialize SDL_ttf: " << TTF_GetError() << endl;
@@ -312,6 +331,27 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
         infoBtnTextTexture,
         infoBtnTextHoverTexture
     );
+
+    bool hovering = false;
+
+    for (SDL_Rect rect : {playBtnRect, infoBtnRect})
+    {
+        if (isMouseInRect(&rect))
+        {
+            hovering = true;
+            break;
+        }
+    }
+
+    if (hovering)
+    {
+        SDL_SetCursor(handCursor);
+    }
+
+    if (!hovering)
+    {
+        SDL_SetCursor(arrowCursor);
+    }
 }
 
 void ui::cleanup()
@@ -324,4 +364,6 @@ void ui::cleanup()
     TTF_CloseFont(titleFont);
     TTF_CloseFont(font);
     TTF_Quit();
+    SDL_FreeCursor(handCursor);
+    SDL_FreeCursor(arrowCursor);
 }
