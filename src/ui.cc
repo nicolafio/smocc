@@ -8,6 +8,7 @@
 #define INCONSOLATA_LGC_BOLD_FONT_PATH "inconsolata-lgc/bold.ttf"
 
 #define FOREGROUND_COLOR {17, 17, 17, 255}
+#define BACKGROUND_COLOR {255, 255, 255, 255}
 
 #define TITLE "SMOCC"
 #define TITLE_FONT_SIZE_PIXELS 40
@@ -33,6 +34,7 @@ TTF_Font* titleFont;
 TTF_Font* font;
 
 SDL_Color foregroundColor = FOREGROUND_COLOR;
+SDL_Color backgroundColor = BACKGROUND_COLOR;
 
 SDL_Color btnBorderColor = {
     foregroundColor.r,
@@ -45,9 +47,26 @@ SDL_Color black = {0, 0, 0, 255};
 
 SDL_Texture* titleTexture;
 SDL_Texture* playBtnTextTexture;
+SDL_Texture* playBtnTextHoverTexture;
 SDL_Texture* infoBtnTextTexture;
+SDL_Texture* infoBtnTextHoverTexture;
 
 int titleWidth, titleHeight;
+
+bool isPointInRect(int x, int y, SDL_Rect* rect)
+{
+    return x >= rect->x && x <= rect->x + rect->w &&
+           y >= rect->y && y <= rect->y + rect->h;
+}
+
+bool isMouseInRect(SDL_Rect* rect)
+{
+    int mouseX, mouseY;
+
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    return isPointInRect(mouseX, mouseY, rect);
+}
 
 TTF_Font* openFont(fs::path& fontPath, int size)
 {
@@ -123,6 +142,56 @@ int getTextureHeight(SDL_Texture* texture)
     return height;
 }
 
+void setDrawColor(SDL_Renderer* renderer, SDL_Color* color)
+{
+    int r = color->r;
+    int g = color->g;
+    int b = color->b;
+    int a = color->a;
+
+    if (SDL_SetRenderDrawColor(renderer, r, g, b, a))
+    {
+        cerr << "Failed to set render draw color: " << SDL_GetError() << endl;
+        exit(1);
+    }
+}
+
+void setDrawBlendMode(SDL_Renderer* renderer, SDL_BlendMode blendMode)
+{
+    if (SDL_SetRenderDrawBlendMode(renderer, blendMode))
+    {
+        cerr << "Failed to set render draw blend mode: " << SDL_GetError() << endl;
+        exit(1);
+    }
+}
+
+void drawRect(SDL_Renderer* renderer, SDL_Rect* rect)
+{
+    if (SDL_RenderDrawRect(renderer, rect))
+    {
+        cerr << "Failed to render rectangle: " << SDL_GetError() << endl;
+        exit(1);
+    }
+}
+
+void fillRect(SDL_Renderer* renderer, SDL_Rect* rect)
+{
+    if (SDL_RenderFillRect(renderer, rect))
+    {
+        cerr << "Failed to fill rectangle: " << SDL_GetError() << endl;
+        exit(1);
+    }
+}
+
+void renderTexture(SDL_Renderer* renderer, SDL_Texture* texture, SDL_Rect* rect)
+{
+    if (SDL_RenderCopy(renderer, texture, NULL, rect))
+    {
+        cerr << "Failed to render texture: " << SDL_GetError() << endl;
+        exit(1);
+    }
+}
+
 SDL_Rect computeMenuButtonRect(
     SDL_Rect* windowRect,
     SDL_Texture* textTexture,
@@ -140,41 +209,30 @@ SDL_Rect computeMenuButtonRect(
 void renderMenuButton(
     SDL_Renderer* renderer,
     SDL_Rect* buttonRect,
-    SDL_Texture* textTexture
+    SDL_Texture* textTexture,
+    SDL_Texture* hoverTextTexture
 ) {
+    bool hover = isMouseInRect(buttonRect);
+
     SDL_Rect textRect = getTextureSize(textTexture);
 
     textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
     textRect.y = buttonRect->y + MENU_BTN_PADDING_PIXELS;
 
-    int r = btnBorderColor.r;
-    int g = btnBorderColor.g;
-    int b = btnBorderColor.b;
-    int a = btnBorderColor.a;
+    setDrawColor(renderer, &btnBorderColor);
+    setDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    drawRect(renderer, buttonRect);
 
-    if (SDL_SetRenderDrawColor(renderer, r, g, b, a))
+    if (!hover)
     {
-        cerr << "Failed to set render draw color: " << SDL_GetError() << endl;
-        exit(1);
+        renderTexture(renderer, textTexture, &textRect);
     }
 
-    if (SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND))
+    if (hover)
     {
-        cerr << "Failed to set render draw blend mode: ";
-        cerr << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    if (SDL_RenderDrawRect(renderer, buttonRect))
-    {
-        cerr << "Failed to render rectangle: " << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    if (SDL_RenderCopy(renderer, textTexture, NULL, &textRect))
-    {
-        cerr << "Failed to render text: " << SDL_GetError() << endl;
-        exit(1);
+        setDrawColor(renderer, &foregroundColor);
+        fillRect(renderer, buttonRect);
+        renderTexture(renderer, hoverTextTexture, &textRect);
     }
 }
 
@@ -196,7 +254,9 @@ void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
 
     titleTexture = createText(renderer, titleFont, TITLE, foregroundColor);
     playBtnTextTexture = createText(renderer, font, PLAY_BUTTON_TEXT, foregroundColor);
+    playBtnTextHoverTexture = createText(renderer, font, PLAY_BUTTON_TEXT, backgroundColor);
     infoBtnTextTexture = createText(renderer, font, INFO_BUTTON_TEXT, foregroundColor);
+    infoBtnTextHoverTexture = createText(renderer, font, INFO_BUTTON_TEXT, backgroundColor);
 
     SDL_QueryTexture(titleTexture, NULL, NULL, &titleWidth, &titleHeight);
 }
@@ -237,19 +297,28 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
         infoBtnYPosition
     );
 
-    if (SDL_RenderCopy(renderer, titleTexture, NULL, &titleRect))
-    {
-        cerr << "Failed to render title: " << SDL_GetError() << endl;
-        exit(1);
-    };
+    renderTexture(renderer, titleTexture, &titleRect);
 
-    renderMenuButton(renderer, &playBtnRect, playBtnTextTexture);
-    renderMenuButton(renderer, &infoBtnRect, infoBtnTextTexture);
+    renderMenuButton(
+        renderer,
+        &playBtnRect,
+        playBtnTextTexture,
+        playBtnTextHoverTexture
+    );
+
+    renderMenuButton(
+        renderer,
+        &infoBtnRect,
+        infoBtnTextTexture,
+        infoBtnTextHoverTexture
+    );
 }
 
 void ui::cleanup()
 {
+    SDL_DestroyTexture(infoBtnTextHoverTexture);
     SDL_DestroyTexture(infoBtnTextTexture);
+    SDL_DestroyTexture(playBtnTextHoverTexture);
     SDL_DestroyTexture(playBtnTextTexture);
     SDL_DestroyTexture(titleTexture);
     TTF_CloseFont(titleFont);
