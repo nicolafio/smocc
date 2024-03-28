@@ -44,7 +44,6 @@ SDL_Color btnBorderColor = {
 SDL_Color black = {0, 0, 0, 255};
 
 SDL_Texture* titleTexture;
-SDL_Texture* helloWorldTexture;
 SDL_Texture* playBtnTextTexture;
 SDL_Texture* infoBtnTextTexture;
 
