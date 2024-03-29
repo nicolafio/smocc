@@ -70,8 +70,12 @@ SDL_Cursor* gfx::createSystemCursor(SDL_SystemCursor cursor)
 
 bool gfx::isPointInRect(int x, int y, SDL_Rect* rect)
 {
-    return x >= rect->x && x <= rect->x + rect->w &&
-           y >= rect->y && y <= rect->y + rect->h;
+    return isPointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
+}
+
+bool gfx::isPointInRect(int x, int y, int rx, int ry, int rw, int rh)
+{
+    return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
 
 bool gfx::isMouseInRect(SDL_Rect* rect)
@@ -82,6 +86,34 @@ bool gfx::isMouseInRect(SDL_Rect* rect)
 
     return isPointInRect(mouseX, mouseY, rect);
 }
+
+bool gfx::circlesOverlap(
+    double x1, double y1, double r1,
+    double x2, double y2, double r2
+) {
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+    double distance = sqrt(dx * dx + dy * dy);
+
+    return distance < r1 + r2;
+}
+
+void gfx::getDirection(
+    double originX,
+    double originY,
+    double targetX,
+    double targetY,
+    double* directionX,
+    double* directionY
+) {
+    double dx = targetX - originX;
+    double dy = targetY - originY;
+    double distance = sqrt(dx * dx + dy * dy);
+
+    *directionX = dx / distance;
+    *directionY = dy / distance;
+}
+
 
 TTF_Font* gfx::openFont(fs::path& fontPath, int size)
 {

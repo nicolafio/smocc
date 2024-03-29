@@ -1,7 +1,9 @@
 flags := -std=c++17 $(shell sdl2-config --cflags --libs) -lSDL2_ttf
+all_sources := $(wildcard src/*.cc)
+all_objects := $(patsubst src/%.cc,obj/%.o,$(all_sources))
 
-out/smocc: obj/smocc.o obj/gfx.o obj/ui.o obj/game.o obj/player.o
-	g++ -o out/smocc obj/gfx.o obj/smocc.o obj/ui.o obj/game.o obj/player.o $(flags)
+out/smocc: $(all_objects)
+	g++ -o out/smocc $(all_objects) $(flags)
 
 obj/smocc.o: obj/
 	g++ -o obj/smocc.o -c src/smocc.cc $(flags)
@@ -17,6 +19,9 @@ obj/game.o: obj/
 
 obj/player.o: obj/
 	g++ -o obj/player.o -c src/player.cc $(flags)
+
+obj/enemies.o: obj/
+	g++ -o obj/enemies.o -c src/enemies.cc $(flags)
 
 obj/:
 	mkdir -p obj

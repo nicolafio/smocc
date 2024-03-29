@@ -18,4 +18,7 @@ namespace smocc::game
     void update();
     void end();
     bool isRunning();
+    int getScore();
+    double getDifficulty();
+    unsigned long long getTimeElapsedMilliseconds();
 }

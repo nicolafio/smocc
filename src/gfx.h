@@ -20,7 +20,19 @@ namespace smocc::gfx
     SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor);
 
     bool isPointInRect(int x, int y, SDL_Rect* rect);
+    bool isPointInRect(int x, int y, int rectX, int rectY, int rectW, int rectH);
     bool isMouseInRect(SDL_Rect* rect);
+
+    bool circlesOverlap(
+        double x1, double y1, double r1,
+        double x2, double y2, double r2
+    );
+
+    void getDirection(
+        double originX, double originY,
+        double targetX, double targetY,
+        double* directionX, double* directionY
+    );
 
     TTF_Font* openFont(std::filesystem::path& fontPath, int size);
 

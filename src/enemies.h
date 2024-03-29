@@ -1,6 +1,6 @@
 /*
 
-player.h: Player implementation for SMOCC
+enemies.h: Enemies implementation for SMOCC
 
 Copyright (C) 2024 Nicola Fiori (JD342)
 
@@ -11,11 +11,8 @@ Public License 3.0.
 
 #pragma once
 
-namespace smocc::player
+namespace smocc::enemies
 {
     void init();
-    void spawn();
     void update();
-    double getXPosition();
-    double getYPosition();
 }

@@ -16,6 +16,7 @@ Public License 3.0.
 #include "ui.h"
 #include "game.h"
 #include "player.h"
+#include "enemies.h"
 
 using namespace std;
 
@@ -61,6 +62,7 @@ void init(int argc, char* argv[])
     smocc::ui::init(argc, argv);
     smocc::game::init();
     smocc::player::init();
+    smocc::enemies::init();
 }
 
 void event(SDL_Event *e)
@@ -86,6 +88,7 @@ void update()
     smocc::ui::update();
     smocc::game::update();
     smocc::player::update();
+    smocc::enemies::update();
 
     SDL_RenderPresent(renderer);
     SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);

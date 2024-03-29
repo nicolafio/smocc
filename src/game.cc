@@ -13,11 +13,20 @@ Public License 3.0.
 #include "player.h"
 
 #include <iostream>
+#include <SDL.h>
 
 using namespace std;
 using namespace smocc;
 
+#define MIN_DIFFICULTY 0.1
+#define MAX_DIFFICULTY 1.0
+
+const double DIFFICULTY_RANGE = MAX_DIFFICULTY - MIN_DIFFICULTY;
+
 bool gameRunning;
+int score;
+double difficulty;
+unsigned long long gameStartTimeMilliseconds;
 
 void game::init()
 {
@@ -28,6 +37,10 @@ void game::begin()
 {
     cout << "Game start!" << endl;
     gameRunning = true;
+    gameStartTimeMilliseconds = SDL_GetTicks64();
+
+    score = 0;
+
     player::spawn();
 }
 
@@ -37,6 +50,10 @@ void game::update()
     {
         return;
     }
+
+    double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)score / 30));
+
+    difficulty = MIN_DIFFICULTY + DIFFICULTY_RANGE * difficultyFactor;
 }
 
 void game::end()
@@ -47,4 +64,19 @@ void game::end()
 bool game::isRunning()
 {
     return gameRunning;
+}
+
+int game::getScore()
+{
+    return score;
+}
+
+double game::getDifficulty()
+{
+    return difficulty;
+}
+
+unsigned long long game::getTimeElapsedMilliseconds()
+{
+    return SDL_GetTicks64() - gameStartTimeMilliseconds;
 }
