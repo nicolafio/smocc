@@ -117,8 +117,3 @@ void player::update()
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
     gfx::fillCircle(xPosition, yPosition, PLAYER_CIRCLE_RADIUS);
 }
-
-void player::cleanup()
-{
-
-}

@@ -30,13 +30,10 @@ bool         quit = false;
 void init(int, char*[]);
 void event(SDL_Event*);
 void update();
-void cleanup();
 
 int main(int argc, char* argv[])
 {
     init(argc, argv);
-
-    atexit(cleanup);
 
     SDL_Event e;
 
@@ -55,6 +52,8 @@ int main(int argc, char* argv[])
         SDL_RenderPresent(renderer);
         SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
     }
+
+    return 0;
 }
 
 void init(int argc, char* argv[])
@@ -96,17 +95,6 @@ void update()
     smocc::ui::update();
     smocc::game::update();
     smocc::player::update();
-}
-
-void cleanup()
-{
-    smocc::ui::cleanup();
-    smocc::game::cleanup();
-    smocc::player::cleanup();
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 }
 
 SDL_Window* smocc::getWindow()

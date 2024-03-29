@@ -17,6 +17,5 @@ namespace smocc::game
     void begin();
     void update();
     void end();
-    void cleanup();
     bool isRunning();
 }

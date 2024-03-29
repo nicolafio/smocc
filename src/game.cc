@@ -44,11 +44,6 @@ void game::end()
     gameRunning = false;
 }
 
-void game::cleanup()
-{
-
-}
-
 bool game::isRunning()
 {
     return gameRunning;

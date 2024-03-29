@@ -217,17 +217,3 @@ void ui::update()
         game::begin();
     }
 }
-
-void ui::cleanup()
-{
-    SDL_DestroyTexture(infoBtnTextHoverTexture);
-    SDL_DestroyTexture(infoBtnTextTexture);
-    SDL_DestroyTexture(playBtnTextHoverTexture);
-    SDL_DestroyTexture(playBtnTextTexture);
-    SDL_DestroyTexture(titleTexture);
-    TTF_CloseFont(titleFont);
-    TTF_CloseFont(font);
-    TTF_Quit();
-    SDL_FreeCursor(handCursor);
-    SDL_FreeCursor(arrowCursor);
-}
