@@ -35,23 +35,7 @@ int main(int argc, char* argv[])
 {
     init(argc, argv);
 
-    SDL_Event e;
-
-    while (!quit)
-    {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    	SDL_RenderClear(renderer);
-
-        while (!quit && SDL_PollEvent(&e))
-        {
-            event(&e);
-        }
-
-        update();
-
-        SDL_RenderPresent(renderer);
-        SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
-    }
+    while (!quit) update();
 
     return 0;
 }
@@ -92,9 +76,19 @@ void event(SDL_Event *e)
 
 void update()
 {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    SDL_Event e;
+
+    while (!quit && SDL_PollEvent(&e)) event(&e);
+
     smocc::ui::update();
     smocc::game::update();
     smocc::player::update();
+
+    SDL_RenderPresent(renderer);
+    SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
 }
 
 SDL_Window* smocc::getWindow()
