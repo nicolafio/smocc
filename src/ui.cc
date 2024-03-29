@@ -102,7 +102,8 @@ TTF_Font* openFont(fs::path& fontPath, int size)
     return font;
 }
 
-SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color) {
+SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color)
+{
     SDL_Renderer* renderer = smocc::getRenderer();
 
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
