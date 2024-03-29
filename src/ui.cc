@@ -1,14 +1,16 @@
+#include "smocc.h"
 #include "ui.h"
+#include "game.h"
+#include "colors.h"
+
 #include <iostream>
 #include <filesystem>
 #include <string>
+#include <SDL.h>
 #include <SDL_ttf.h>
 
 #define INCONSOLATA_LGC_FONT_PATH "inconsolata-lgc/regular.ttf"
 #define INCONSOLATA_LGC_BOLD_FONT_PATH "inconsolata-lgc/bold.ttf"
-
-#define FOREGROUND_COLOR {17, 17, 17, 255}
-#define BACKGROUND_COLOR {255, 255, 255, 255}
 
 #define TITLE "SMOCC"
 #define TITLE_FONT_SIZE_PIXELS 40
@@ -28,6 +30,7 @@
 #define INFO_BUTTON_TEXT "Info"
 
 using namespace std;
+using namespace smocc;
 namespace fs = std::filesystem;
 
 SDL_Cursor* arrowCursor;
@@ -36,8 +39,8 @@ SDL_Cursor* handCursor;
 TTF_Font* titleFont;
 TTF_Font* font;
 
-SDL_Color foregroundColor = FOREGROUND_COLOR;
-SDL_Color backgroundColor = BACKGROUND_COLOR;
+SDL_Color foregroundColor = SMOCC_FOREGROUND_COLOR;
+SDL_Color backgroundColor = SMOCC_BACKGROUND_COLOR;
 
 SDL_Color btnBorderColor = {
     foregroundColor.r,
@@ -55,6 +58,8 @@ SDL_Texture* infoBtnTextTexture;
 SDL_Texture* infoBtnTextHoverTexture;
 
 int titleWidth, titleHeight;
+
+bool mainMenuVisible;
 
 SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
 {
@@ -97,12 +102,9 @@ TTF_Font* openFont(fs::path& fontPath, int size)
     return font;
 }
 
-SDL_Texture* createText(
-    SDL_Renderer* renderer,
-    TTF_Font* font,
-    char const* text,
-    SDL_Color color
-) {
+SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color) {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
 
     if (!surface)
@@ -158,8 +160,10 @@ int getTextureHeight(SDL_Texture* texture)
     return height;
 }
 
-void setDrawColor(SDL_Renderer* renderer, SDL_Color* color)
+void setDrawColor(SDL_Color* color)
 {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     int r = color->r;
     int g = color->g;
     int b = color->b;
@@ -172,8 +176,10 @@ void setDrawColor(SDL_Renderer* renderer, SDL_Color* color)
     }
 }
 
-void setDrawBlendMode(SDL_Renderer* renderer, SDL_BlendMode blendMode)
+void setDrawBlendMode(SDL_BlendMode blendMode)
 {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     if (SDL_SetRenderDrawBlendMode(renderer, blendMode))
     {
         cerr << "Failed to set render draw blend mode: " << SDL_GetError() << endl;
@@ -181,8 +187,10 @@ void setDrawBlendMode(SDL_Renderer* renderer, SDL_BlendMode blendMode)
     }
 }
 
-void drawRect(SDL_Renderer* renderer, SDL_Rect* rect)
+void drawRect(SDL_Rect* rect)
 {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     if (SDL_RenderDrawRect(renderer, rect))
     {
         cerr << "Failed to render rectangle: " << SDL_GetError() << endl;
@@ -190,8 +198,10 @@ void drawRect(SDL_Renderer* renderer, SDL_Rect* rect)
     }
 }
 
-void fillRect(SDL_Renderer* renderer, SDL_Rect* rect)
+void fillRect(SDL_Rect* rect)
 {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     if (SDL_RenderFillRect(renderer, rect))
     {
         cerr << "Failed to fill rectangle: " << SDL_GetError() << endl;
@@ -199,8 +209,10 @@ void fillRect(SDL_Renderer* renderer, SDL_Rect* rect)
     }
 }
 
-void renderTexture(SDL_Renderer* renderer, SDL_Texture* texture, SDL_Rect* rect)
+void renderTexture(SDL_Texture* texture, SDL_Rect* rect)
 {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     if (SDL_RenderCopy(renderer, texture, NULL, rect))
     {
         cerr << "Failed to render texture: " << SDL_GetError() << endl;
@@ -223,11 +235,12 @@ SDL_Rect computeMenuButtonRect(
 }
 
 void renderMenuButton(
-    SDL_Renderer* renderer,
     SDL_Rect* buttonRect,
     SDL_Texture* textTexture,
     SDL_Texture* hoverTextTexture
 ) {
+    SDL_Renderer* renderer = smocc::getRenderer();
+
     bool hover = isMouseInRect(buttonRect);
 
     SDL_Rect textRect = getTextureSize(textTexture);
@@ -235,27 +248,28 @@ void renderMenuButton(
     textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
     textRect.y = buttonRect->y + MENU_BTN_PADDING_PIXELS;
 
-    setDrawColor(renderer, &btnBorderColor);
-    setDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    drawRect(renderer, buttonRect);
+    setDrawColor(&btnBorderColor);
+    setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    drawRect(buttonRect);
 
     if (!hover)
     {
-        renderTexture(renderer, textTexture, &textRect);
+        renderTexture(textTexture, &textRect);
     }
 
     if (hover)
     {
-        setDrawColor(renderer, &foregroundColor);
-        fillRect(renderer, buttonRect);
-        renderTexture(renderer, hoverTextTexture, &textRect);
+        setDrawColor(&foregroundColor);
+        fillRect(buttonRect);
+        renderTexture(hoverTextTexture, &textRect);
     }
 }
 
-void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
+void ui::init(int argc, char* argv[])
 {
     arrowCursor = createSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     handCursor = createSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    mainMenuVisible = true;
 
     if (TTF_Init())
     {
@@ -271,22 +285,26 @@ void ui::init(int argc, char* argv[], SDL_Renderer* renderer)
     font = openFont(fontPath, BODY_FONT_SIZE_PIXELS);
     titleFont = openFont(boldFontPath, TITLE_FONT_SIZE_PIXELS);
 
-    titleTexture = createText(renderer, titleFont, TITLE, foregroundColor);
-    playBtnTextTexture = createText(renderer, font, PLAY_BUTTON_TEXT, foregroundColor);
-    playBtnTextHoverTexture = createText(renderer, font, PLAY_BUTTON_TEXT, backgroundColor);
-    infoBtnTextTexture = createText(renderer, font, INFO_BUTTON_TEXT, foregroundColor);
-    infoBtnTextHoverTexture = createText(renderer, font, INFO_BUTTON_TEXT, backgroundColor);
+    titleTexture = createText(titleFont, TITLE, foregroundColor);
+    playBtnTextTexture = createText(font, PLAY_BUTTON_TEXT, foregroundColor);
+    playBtnTextHoverTexture = createText(font, PLAY_BUTTON_TEXT, backgroundColor);
+    infoBtnTextTexture = createText(font, INFO_BUTTON_TEXT, foregroundColor);
+    infoBtnTextHoverTexture = createText(font, INFO_BUTTON_TEXT, backgroundColor);
 
     SDL_QueryTexture(titleTexture, NULL, NULL, &titleWidth, &titleHeight);
 }
 
-void ui::update(SDL_Renderer* renderer, SDL_Window* window)
+void ui::update()
 {
+    SDL_Window* window = smocc::getWindow();
+
     SDL_Rect windowRect;
     windowRect.x = 0;
     windowRect.y = 0;
 
     SDL_GetWindowSize(window, &windowRect.w, &windowRect.h);
+
+    if (!mainMenuVisible) return;
 
     SDL_Rect uiRect;
     uiRect.w = windowRect.w * UI_WIDTH_PERCENTAGE / 100;
@@ -316,32 +334,15 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
         infoBtnYPosition
     );
 
-    renderTexture(renderer, titleTexture, &titleRect);
+    renderTexture(titleTexture, &titleRect);
+    renderMenuButton(&playBtnRect, playBtnTextTexture, playBtnTextHoverTexture);
+    renderMenuButton(&infoBtnRect, infoBtnTextTexture, infoBtnTextHoverTexture);
 
-    renderMenuButton(
-        renderer,
-        &playBtnRect,
-        playBtnTextTexture,
-        playBtnTextHoverTexture
-    );
-
-    renderMenuButton(
-        renderer,
-        &infoBtnRect,
-        infoBtnTextTexture,
-        infoBtnTextHoverTexture
-    );
-
-    bool hovering = false;
-
-    for (SDL_Rect rect : {playBtnRect, infoBtnRect})
-    {
-        if (isMouseInRect(&rect))
-        {
-            hovering = true;
-            break;
-        }
-    }
+    bool playBtnHovering = isMouseInRect(&playBtnRect);
+    bool infoBtnHovering = isMouseInRect(&infoBtnRect);
+    bool hovering = playBtnHovering || infoBtnHovering;
+    Uint32 mouseState = SDL_GetMouseState(NULL, NULL);
+    bool pressingLeftButton = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
 
     if (hovering)
     {
@@ -351,6 +352,13 @@ void ui::update(SDL_Renderer* renderer, SDL_Window* window)
     if (!hovering)
     {
         SDL_SetCursor(arrowCursor);
+    }
+
+    if (pressingLeftButton && playBtnHovering)
+    {
+        SDL_SetCursor(arrowCursor);
+        mainMenuVisible = false;
+        game::begin();
     }
 }
 

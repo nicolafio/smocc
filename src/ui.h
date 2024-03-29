@@ -1,9 +1,8 @@
 #pragma once
-#include <SDL.h>
 
-namespace ui
+namespace smocc::ui
 {
-    void init(int, char**, SDL_Renderer*);
-    void update(SDL_Renderer*, SDL_Window*);
+    void init(int, char**);
+    void update();
     void cleanup();
 }

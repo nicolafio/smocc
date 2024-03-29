@@ -1,10 +1,12 @@
 #include <iostream>
 #include <SDL.h>
 
-using namespace std;
-
-#include "main.h"
+#include "smocc.h"
 #include "ui.h"
+#include "game.h"
+#include "player.h"
+
+using namespace std;
 
 #define WINDOW_WIDTH  1000
 #define WINDOW_HEIGHT 720
@@ -13,6 +15,11 @@ using namespace std;
 SDL_Window   *window;
 SDL_Renderer *renderer;
 bool         quit = false;
+
+void init(int, char*[]);
+void event(SDL_Event*);
+void update();
+void cleanup();
 
 int main(int argc, char* argv[])
 {
@@ -57,7 +64,9 @@ void init(int argc, char* argv[])
         exit(1);
     }
 
-    ui::init(argc, argv, renderer);
+    smocc::ui::init(argc, argv);
+    smocc::game::init();
+    smocc::player::init();
 }
 
 void event(SDL_Event *e)
@@ -73,14 +82,28 @@ void event(SDL_Event *e)
 
 void update()
 {
-    ui::update(renderer, window);
+    smocc::ui::update();
+    smocc::game::update();
+    smocc::player::update();
 }
 
 void cleanup()
 {
-    ui::cleanup();
+    smocc::ui::cleanup();
+    smocc::game::cleanup();
+    smocc::player::cleanup();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+SDL_Window* smocc::getWindow()
+{
+    return window;
+}
+
+SDL_Renderer* smocc::getRenderer()
+{
+    return renderer;
 }

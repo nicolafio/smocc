@@ -1,0 +1,4 @@
+#pragma once
+
+#define SMOCC_FOREGROUND_COLOR {17, 17, 17, 255}
+#define SMOCC_BACKGROUND_COLOR {255, 255, 255, 255}
