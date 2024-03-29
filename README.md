@@ -24,11 +24,18 @@ _These instructions are for macOS._
 
 ## Credits
 
-This software comes with this external content:
+This software conains work originating from:
+
+* [SDL2_gfxPrimitives.c] source code by [Andreas Schiffler (ferzkopp)] and [Richard Russell]
+  licesed under [Zlib](http://www.zlib.net/zlib_license.html).
 
 * [Inconsolate LGC] font by [MihailJP] lincesed under
   [SIL OFL](out/inconsolata-lgc/LICENSE).
 
+[Andreas Schiffler (ferzkopp)]: https://www.ferzkopp.net/
+[Richard Russell]: http://rtrussell.co.uk/
+[SDL2_gfxPrimitives.c]: https://github.com/rtrussell/BBCSDL/blob/85f1c5f/src/SDL2_gfxPrimitives.c
+[Zlib]: http://www.zlib.net/zlib_license.html
 [MihailJP]: https://github.com/MihailJP
 [Inconsolate LGC]: https://github.com/MihailJP/Inconsolata-LGC
 

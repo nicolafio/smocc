@@ -30,10 +30,21 @@ namespace smocc::gfx
     int getTextureHeight(SDL_Texture* texture);
 
     void setDrawColor(SDL_Color* color);
+    void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
+    void getDrawColor(Uint8* r, Uint8* g, Uint8* b, Uint8* a);
+
     void setDrawBlendMode(SDL_BlendMode blendMode);
+
+    void fillPixel(int x, int y);
+
+    void drawLine(int x1, int y1, int x2, int y2);
 
     void drawRect(SDL_Rect* rect);
     void fillRect(SDL_Rect* rect);
+
+    void fillEllipse(float cx, float cy, float rx, float ry);
+
+    void fillCircle(float x, float y, float radius);
 
     void renderTexture(SDL_Texture* texture, SDL_Rect* rect);
 }

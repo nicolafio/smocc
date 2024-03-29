@@ -16,11 +16,13 @@ Public License 3.0.
 #include "player.h"
 #include "game.h"
 #include "colors.h"
+#include "gfx.h"
 
 using namespace std;
 using namespace smocc;
 
 #define PLAYER_SPEED 0.3f
+#define PLAYER_CIRCLE_RADIUS 3
 
 bool spawned;
 double xPosition;
@@ -99,10 +101,10 @@ void player::update()
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    int minX = 3;
-    int minY = 3;
-    int maxX = windowWidth - 3;
-    int maxY = windowHeight - 3;
+    int minX = PLAYER_CIRCLE_RADIUS;
+    int minY = PLAYER_CIRCLE_RADIUS;
+    int maxX = windowWidth - PLAYER_CIRCLE_RADIUS;
+    int maxY = windowHeight - PLAYER_CIRCLE_RADIUS;
 
     if (xPosition < minX) xPosition = minX;
     if (xPosition > maxX) xPosition = maxX;
@@ -111,21 +113,9 @@ void player::update()
 
     lastUpdateTimeMilliseconds = now;
 
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    SDL_Rect playerRect;
-    playerRect.w = 6;
-    playerRect.h = 6;
-    playerRect.x = round(xPosition) - 3;
-    playerRect.y = round(yPosition) - 3;
-
-    int r = playerColor.r;
-    int g = playerColor.g;
-    int b = playerColor.b;
-    int a = playerColor.a;
-
-    SDL_SetRenderDrawColor(renderer, r, g, b, a);
-    SDL_RenderFillRect(renderer, &playerRect);
+    gfx::setDrawColor(&playerColor);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::fillCircle(xPosition, yPosition, PLAYER_CIRCLE_RADIUS);
 }
 
 void player::cleanup()
