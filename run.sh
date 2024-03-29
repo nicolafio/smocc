@@ -21,8 +21,6 @@ wait_for_change() {
     done
 }
 
-make clean
-make build
 while true
 do
     clear
