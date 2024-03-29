@@ -9,16 +9,20 @@ Public License 3.0.
 
 */
 
-#include "smocc.h"
-#include "ui.h"
-#include "game.h"
-#include "colors.h"
-
 #include <iostream>
 #include <filesystem>
 #include <string>
-#include <SDL.h>
-#include <SDL_ttf.h>
+
+#include "smocc.h"
+#include "gfx.h"
+#include "game.h"
+#include "colors.h"
+#include "ui.h"
+
+using namespace std;
+using namespace smocc;
+
+namespace fs = std::filesystem;
 
 #define INCONSOLATA_LGC_FONT_PATH "inconsolata-lgc/regular.ttf"
 #define INCONSOLATA_LGC_BOLD_FONT_PATH "inconsolata-lgc/bold.ttf"
@@ -50,13 +54,13 @@ SDL_Cursor* handCursor;
 TTF_Font* titleFont;
 TTF_Font* font;
 
-SDL_Color foregroundColor = SMOCC_FOREGROUND_COLOR;
-SDL_Color backgroundColor = SMOCC_BACKGROUND_COLOR;
+SDL_Color fgColor = SMOCC_FOREGROUND_COLOR;
+SDL_Color bgColor = SMOCC_BACKGROUND_COLOR;
 
 SDL_Color btnBorderColor = {
-    foregroundColor.r,
-    foregroundColor.g,
-    foregroundColor.b,
+    fgColor.r,
+    fgColor.g,
+    fgColor.b,
     MENU_BTN_BORDER_OPACITY
 };
 
@@ -72,178 +76,18 @@ int titleWidth, titleHeight;
 
 bool mainMenuVisible;
 
-SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
-{
-    SDL_Cursor* newCursor = SDL_CreateSystemCursor(cursor);
-
-    if (!newCursor)
-    {
-        cerr << "Failed to create system cursor: " << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    return newCursor;
-}
-
-bool isPointInRect(int x, int y, SDL_Rect* rect)
-{
-    return x >= rect->x && x <= rect->x + rect->w &&
-           y >= rect->y && y <= rect->y + rect->h;
-}
-
-bool isMouseInRect(SDL_Rect* rect)
-{
-    int mouseX, mouseY;
-
-    SDL_GetMouseState(&mouseX, &mouseY);
-
-    return isPointInRect(mouseX, mouseY, rect);
-}
-
-TTF_Font* openFont(fs::path& fontPath, int size)
-{
-    TTF_Font* font = TTF_OpenFont(fontPath.c_str(), size);
-
-    if (!font)
-    {
-        cerr << "Failed to open font: " << TTF_GetError() << endl;
-        exit(1);
-    }
-
-    return font;
-}
-
-SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
-
-    if (!surface)
-    {
-        cerr << "Failed to render text: " << TTF_GetError() << endl;
-        exit(1);
-    }
-
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    if (!texture)
-    {
-        cerr << "Failed to create text texture: " << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    if (SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND))
-    {
-        cerr << "Failed to set texture blend mode: " << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    SDL_FreeSurface(surface);
-    return texture;
-}
-
-SDL_Rect getTextureSize(SDL_Texture* texture)
-{
-    SDL_Rect size;
-    size.x = 0;
-    size.y = 0;
-
-    if (SDL_QueryTexture(texture, NULL, NULL, &size.w, &size.h))
-    {
-        cerr << "Failed to query texture width and height: ";
-        cerr << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    return size;
-}
-
-int getTextureHeight(SDL_Texture* texture)
-{
-    int height;
-
-    if (SDL_QueryTexture(texture, NULL, NULL, NULL, &height))
-    {
-        cerr << "Failed to query texture height: " << SDL_GetError() << endl;
-        exit(1);
-    }
-
-    return height;
-}
-
-void setDrawColor(SDL_Color* color)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    int r = color->r;
-    int g = color->g;
-    int b = color->b;
-    int a = color->a;
-
-    if (SDL_SetRenderDrawColor(renderer, r, g, b, a))
-    {
-        cerr << "Failed to set render draw color: " << SDL_GetError() << endl;
-        exit(1);
-    }
-}
-
-void setDrawBlendMode(SDL_BlendMode blendMode)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    if (SDL_SetRenderDrawBlendMode(renderer, blendMode))
-    {
-        cerr << "Failed to set render draw blend mode: " << SDL_GetError() << endl;
-        exit(1);
-    }
-}
-
-void drawRect(SDL_Rect* rect)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    if (SDL_RenderDrawRect(renderer, rect))
-    {
-        cerr << "Failed to render rectangle: " << SDL_GetError() << endl;
-        exit(1);
-    }
-}
-
-void fillRect(SDL_Rect* rect)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    if (SDL_RenderFillRect(renderer, rect))
-    {
-        cerr << "Failed to fill rectangle: " << SDL_GetError() << endl;
-        exit(1);
-    }
-}
-
-void renderTexture(SDL_Texture* texture, SDL_Rect* rect)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    if (SDL_RenderCopy(renderer, texture, NULL, rect))
-    {
-        cerr << "Failed to render texture: " << SDL_GetError() << endl;
-        exit(1);
-    }
-}
-
 SDL_Rect computeMenuButtonRect(
     SDL_Rect* windowRect,
     SDL_Texture* textTexture,
     int yPosition
 ) {
-    SDL_Rect buttonRect;
-    buttonRect.w = MENU_BTN_WIDTH_PIXELS;
-    buttonRect.h = getTextureHeight(textTexture) + 2 * MENU_BTN_PADDING_PIXELS;
-    buttonRect.x = (windowRect->w - buttonRect.w) / 2;
-    buttonRect.y = yPosition;
+    SDL_Rect rect;
+    rect.w = MENU_BTN_WIDTH_PIXELS;
+    rect.h = gfx::getTextureHeight(textTexture) + 2 * MENU_BTN_PADDING_PIXELS;
+    rect.x = (windowRect->w - rect.w) / 2;
+    rect.y = yPosition;
 
-    return buttonRect;
+    return rect;
 }
 
 void renderMenuButton(
@@ -253,34 +97,34 @@ void renderMenuButton(
 ) {
     SDL_Renderer* renderer = smocc::getRenderer();
 
-    bool hover = isMouseInRect(buttonRect);
+    bool hover = gfx::isMouseInRect(buttonRect);
 
-    SDL_Rect textRect = getTextureSize(textTexture);
+    SDL_Rect textRect = gfx::getTextureSize(textTexture);
 
     textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
     textRect.y = buttonRect->y + MENU_BTN_PADDING_PIXELS;
 
-    setDrawColor(&btnBorderColor);
-    setDrawBlendMode(SDL_BLENDMODE_BLEND);
-    drawRect(buttonRect);
+    gfx::setDrawColor(&btnBorderColor);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::drawRect(buttonRect);
 
     if (!hover)
     {
-        renderTexture(textTexture, &textRect);
+        gfx::renderTexture(textTexture, &textRect);
     }
 
     if (hover)
     {
-        setDrawColor(&foregroundColor);
-        fillRect(buttonRect);
-        renderTexture(hoverTextTexture, &textRect);
+        gfx::setDrawColor(&fgColor);
+        gfx::fillRect(buttonRect);
+        gfx::renderTexture(hoverTextTexture, &textRect);
     }
 }
 
 void ui::init(int argc, char* argv[])
 {
-    arrowCursor = createSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-    handCursor = createSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    arrowCursor = gfx::createSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    handCursor = gfx::createSystemCursor(SDL_SYSTEM_CURSOR_HAND);
     mainMenuVisible = true;
 
     if (TTF_Init())
@@ -294,14 +138,14 @@ void ui::init(int argc, char* argv[])
     fs::path fontPath = programDir / INCONSOLATA_LGC_FONT_PATH;
     fs::path boldFontPath = programDir / INCONSOLATA_LGC_BOLD_FONT_PATH;
 
-    font = openFont(fontPath, BODY_FONT_SIZE_PIXELS);
-    titleFont = openFont(boldFontPath, TITLE_FONT_SIZE_PIXELS);
+    font = gfx::openFont(fontPath, BODY_FONT_SIZE_PIXELS);
+    titleFont = gfx::openFont(boldFontPath, TITLE_FONT_SIZE_PIXELS);
 
-    titleTexture = createText(titleFont, TITLE, foregroundColor);
-    playBtnTextTexture = createText(font, PLAY_BUTTON_TEXT, foregroundColor);
-    playBtnTextHoverTexture = createText(font, PLAY_BUTTON_TEXT, backgroundColor);
-    infoBtnTextTexture = createText(font, INFO_BUTTON_TEXT, foregroundColor);
-    infoBtnTextHoverTexture = createText(font, INFO_BUTTON_TEXT, backgroundColor);
+    titleTexture = gfx::createText(titleFont, TITLE, fgColor);
+    playBtnTextTexture = gfx::createText(font, PLAY_BUTTON_TEXT, fgColor);
+    playBtnTextHoverTexture = gfx::createText(font, PLAY_BUTTON_TEXT, bgColor);
+    infoBtnTextTexture = gfx::createText(font, INFO_BUTTON_TEXT, fgColor);
+    infoBtnTextHoverTexture = gfx::createText(font, INFO_BUTTON_TEXT, bgColor);
 
     SDL_QueryTexture(titleTexture, NULL, NULL, &titleWidth, &titleHeight);
 }
@@ -346,12 +190,12 @@ void ui::update()
         infoBtnYPosition
     );
 
-    renderTexture(titleTexture, &titleRect);
+    gfx::renderTexture(titleTexture, &titleRect);
     renderMenuButton(&playBtnRect, playBtnTextTexture, playBtnTextHoverTexture);
     renderMenuButton(&infoBtnRect, infoBtnTextTexture, infoBtnTextHoverTexture);
 
-    bool playBtnHovering = isMouseInRect(&playBtnRect);
-    bool infoBtnHovering = isMouseInRect(&infoBtnRect);
+    bool playBtnHovering = gfx::isMouseInRect(&playBtnRect);
+    bool infoBtnHovering = gfx::isMouseInRect(&infoBtnRect);
     bool hovering = playBtnHovering || infoBtnHovering;
     Uint32 mouseState = SDL_GetMouseState(NULL, NULL);
     bool pressingLeftButton = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
