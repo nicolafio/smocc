@@ -69,17 +69,20 @@ SDL_Texture* _playBtnTextHoverTexture;
 SDL_Texture* _infoBtnTextTexture;
 SDL_Texture* _infoBtnTextHoverTexture;
 
+SDL_Rect _uiRect;
+
 int _titleWidth, _titleHeight;
 
 bool _mainMenuVisible;
 
-SDL_Rect _computeMenuButtonRect(SDL_Rect* windowRect, SDL_Texture* textTexture,
-                                int yPosition)
+void _updateMainMenu();
+
+SDL_Rect _computeMenuButtonRect(SDL_Texture* textTexture, int yPosition)
 {
     SDL_Rect rect;
     rect.w = _MENU_BTN_WIDTH_PIXELS;
     rect.h = gfx::getTextureHeight(textTexture) + 2 * _MENU_BTN_PADDING_PIXELS;
-    rect.x = (windowRect->w - rect.w) / 2;
+    rect.x = _uiRect.x + (_uiRect.w - rect.w) / 2;
     rect.y = yPosition;
 
     return rect;
@@ -153,30 +156,34 @@ void update()
 
     SDL_GetWindowSize(window, &windowRect.w, &windowRect.h);
 
-    if (!_mainMenuVisible) return;
+    _uiRect.w = windowRect.w * _UI_WIDTH_PERCENTAGE / 100;
+    _uiRect.h = windowRect.h * _UI_HEIGHT_PERCENTAGE / 100;
+    _uiRect.x = (windowRect.w - _uiRect.w) / 2;
+    _uiRect.y = (windowRect.h - _uiRect.h) / 2;
 
-    SDL_Rect uiRect;
-    uiRect.w = windowRect.w * _UI_WIDTH_PERCENTAGE / 100;
-    uiRect.h = windowRect.h * _UI_HEIGHT_PERCENTAGE / 100;
-    uiRect.x = (windowRect.w - uiRect.w) / 2;
-    uiRect.y = (windowRect.h - uiRect.h) / 2;
+    _updateMainMenu();
+}
+
+void _updateMainMenu()
+{
+    if (!_mainMenuVisible) return;
 
     SDL_Rect titleRect;
     titleRect.w = _titleWidth;
     titleRect.h = _titleHeight;
-    titleRect.x = (windowRect.w - titleRect.w) / 2;
-    titleRect.y = uiRect.y + _TITLE_MARGINS_PIXELS;
+    titleRect.x = _uiRect.x + (_uiRect.w - titleRect.w) / 2;
+    titleRect.y = _uiRect.y + _TITLE_MARGINS_PIXELS;
 
     int playBtnYPosition = titleRect.y + titleRect.h + _TITLE_MARGINS_PIXELS;
 
-    SDL_Rect playBtnRect = _computeMenuButtonRect(
-        &windowRect, _playBtnTextTexture, playBtnYPosition);
+    SDL_Rect playBtnRect =
+        _computeMenuButtonRect(_playBtnTextTexture, playBtnYPosition);
 
     int infoBtnYPosition =
         playBtnRect.y + playBtnRect.h + _MENU_BTN_MARGIN_PIXELS;
 
-    SDL_Rect infoBtnRect = _computeMenuButtonRect(
-        &windowRect, _infoBtnTextTexture, infoBtnYPosition);
+    SDL_Rect infoBtnRect =
+        _computeMenuButtonRect(_infoBtnTextTexture, infoBtnYPosition);
 
     gfx::renderTexture(_titleTexture, &titleRect);
 
