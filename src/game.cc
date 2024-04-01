@@ -18,50 +18,54 @@ Public License 3.0.
 using namespace std;
 using namespace smocc;
 
-#define MIN_DIFFICULTY 0.1
-#define MAX_DIFFICULTY 1.0
+namespace smocc::game
+{
 
-const double DIFFICULTY_RANGE = MAX_DIFFICULTY - MIN_DIFFICULTY;
+const double _MIN_DIFFICULTY = 0.1;
+const double _MAX_DIFFICULTY = 1.0;
+const double _DIFFICULTY_RANGE = _MAX_DIFFICULTY - _MIN_DIFFICULTY;
 
-bool gameRunning;
-int score;
-double difficulty;
-unsigned long long gameStartTimeMilliseconds;
+bool _gameRunning;
+int _score;
+double _difficulty;
+unsigned long long _gameStartTimeMilliseconds;
 
-void game::init() { gameRunning = false; }
+void init() { _gameRunning = false; }
 
-void game::begin()
+void begin()
 {
     cout << "Game start!" << endl;
-    gameRunning = true;
-    gameStartTimeMilliseconds = SDL_GetTicks64();
+    _gameRunning = true;
+    _gameStartTimeMilliseconds = SDL_GetTicks64();
 
-    score = 0;
+    _score = 0;
 
     player::spawn();
 }
 
-void game::update()
+void update()
 {
-    if (!gameRunning)
+    if (!_gameRunning)
     {
         return;
     }
 
-    double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)score / 30));
+    double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 30));
 
-    difficulty = MIN_DIFFICULTY + DIFFICULTY_RANGE * difficultyFactor;
+    _difficulty = _MIN_DIFFICULTY + _DIFFICULTY_RANGE * difficultyFactor;
 }
 
-void game::end() { gameRunning = false; }
+void end() { _gameRunning = false; }
 
-bool game::isRunning() { return gameRunning; }
+bool isRunning() { return _gameRunning; }
 
-int game::getScore() { return score; }
+int getScore() { return _score; }
 
-double game::getDifficulty() { return difficulty; }
+double getDifficulty() { return _difficulty; }
 
-unsigned long long game::getTimeElapsedMilliseconds()
+unsigned long long getTimeElapsedMilliseconds()
 {
-    return SDL_GetTicks64() - gameStartTimeMilliseconds;
+    return SDL_GetTicks64() - _gameStartTimeMilliseconds;
 }
+
+} // namespace smocc::game

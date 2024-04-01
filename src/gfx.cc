@@ -7,7 +7,7 @@ Copyright (C) 2024 Nicola Fiori (JD342)
 This file is part of the SMOCC, licensed under the terms of the GNU General
 Public License 3.0.
 
-The function `gfx::fillEllipse` contains adapted code originating from
+The function `fillEllipse` contains adapted code originating from
 SDL2_gfxPrimitives.c by Andreas Schiffler and Richard Russell, originally named
 `aaFilledEllipseRGBA`.
 
@@ -55,7 +55,10 @@ using namespace smocc;
 
 namespace fs = std::filesystem;
 
-SDL_Cursor* gfx::createSystemCursor(SDL_SystemCursor cursor)
+namespace smocc::gfx
+{
+
+SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
 {
     SDL_Cursor* newCursor = SDL_CreateSystemCursor(cursor);
 
@@ -68,17 +71,17 @@ SDL_Cursor* gfx::createSystemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
-bool gfx::isPointInRect(int x, int y, SDL_Rect* rect)
+bool isPointInRect(int x, int y, SDL_Rect* rect)
 {
     return isPointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
 }
 
-bool gfx::isPointInRect(int x, int y, int rx, int ry, int rw, int rh)
+bool isPointInRect(int x, int y, int rx, int ry, int rw, int rh)
 {
     return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
 
-bool gfx::isMouseInRect(SDL_Rect* rect)
+bool isMouseInRect(SDL_Rect* rect)
 {
     int mouseX, mouseY;
 
@@ -87,8 +90,8 @@ bool gfx::isMouseInRect(SDL_Rect* rect)
     return isPointInRect(mouseX, mouseY, rect);
 }
 
-bool gfx::circlesOverlap(double x1, double y1, double r1, double x2, double y2,
-                         double r2)
+bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
+                    double r2)
 {
     double dx = x1 - x2;
     double dy = y1 - y2;
@@ -97,8 +100,8 @@ bool gfx::circlesOverlap(double x1, double y1, double r1, double x2, double y2,
     return distance < r1 + r2;
 }
 
-void gfx::getDirection(double originX, double originY, double targetX,
-                       double targetY, double* directionX, double* directionY)
+void getDirection(double originX, double originY, double targetX,
+                  double targetY, double* directionX, double* directionY)
 {
     double dx = targetX - originX;
     double dy = targetY - originY;
@@ -108,7 +111,7 @@ void gfx::getDirection(double originX, double originY, double targetX,
     *directionY = dy / distance;
 }
 
-TTF_Font* gfx::openFont(fs::path& fontPath, int size)
+TTF_Font* openFont(fs::path& fontPath, int size)
 {
     TTF_Font* font = TTF_OpenFont(fontPath.c_str(), size);
 
@@ -121,7 +124,7 @@ TTF_Font* gfx::openFont(fs::path& fontPath, int size)
     return font;
 }
 
-SDL_Texture* gfx::createText(TTF_Font* font, char const* text, SDL_Color color)
+SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -152,7 +155,7 @@ SDL_Texture* gfx::createText(TTF_Font* font, char const* text, SDL_Color color)
     return texture;
 }
 
-SDL_Rect gfx::getTextureSize(SDL_Texture* texture)
+SDL_Rect getTextureSize(SDL_Texture* texture)
 {
     SDL_Rect size;
     size.x = 0;
@@ -168,7 +171,7 @@ SDL_Rect gfx::getTextureSize(SDL_Texture* texture)
     return size;
 }
 
-int gfx::getTextureHeight(SDL_Texture* texture)
+int getTextureHeight(SDL_Texture* texture)
 {
     int height;
 
@@ -181,12 +184,9 @@ int gfx::getTextureHeight(SDL_Texture* texture)
     return height;
 }
 
-void gfx::setDrawColor(SDL_Color* c)
-{
-    gfx::setDrawColor(c->r, c->g, c->b, c->a);
-}
+void setDrawColor(SDL_Color* c) { setDrawColor(c->r, c->g, c->b, c->a); }
 
-void gfx::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -197,7 +197,7 @@ void gfx::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
     }
 }
 
-void gfx::getDrawColor(Uint8* r, Uint8* g, Uint8* b, Uint8* a)
+void getDrawColor(Uint8* r, Uint8* g, Uint8* b, Uint8* a)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -208,7 +208,7 @@ void gfx::getDrawColor(Uint8* r, Uint8* g, Uint8* b, Uint8* a)
     }
 }
 
-void gfx::setDrawBlendMode(SDL_BlendMode blendMode)
+void setDrawBlendMode(SDL_BlendMode blendMode)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -220,7 +220,7 @@ void gfx::setDrawBlendMode(SDL_BlendMode blendMode)
     }
 }
 
-void gfx::fillPixel(int x, int y)
+void fillPixel(int x, int y)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -231,7 +231,7 @@ void gfx::fillPixel(int x, int y)
     }
 }
 
-void gfx::drawLine(int x1, int y1, int x2, int y2)
+void drawLine(int x1, int y1, int x2, int y2)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -242,7 +242,7 @@ void gfx::drawLine(int x1, int y1, int x2, int y2)
     }
 }
 
-void gfx::drawRect(SDL_Rect* rect)
+void drawRect(SDL_Rect* rect)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -253,7 +253,7 @@ void gfx::drawRect(SDL_Rect* rect)
     }
 }
 
-void gfx::fillRect(SDL_Rect* rect)
+void fillRect(SDL_Rect* rect)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -281,11 +281,11 @@ Paramters:
  - ry Vertical radius in pixels of the filled ellipse.
 
 */
-void gfx::fillEllipse(float cx, float cy, float rx, float ry)
+void fillEllipse(float cx, float cy, float rx, float ry)
 {
     Uint8 r, g, b, a;
 
-    gfx::getDrawColor(&r, &g, &b, &a);
+    getDrawColor(&r, &g, &b, &a);
 
     int n, xi, yi, result = 0;
     double s, v, x, y, dx, dy;
@@ -312,8 +312,8 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
 
                 if (x >= 0.5)
                 {
-                    gfx::setDrawColor(r, g, b, a);
-                    gfx::drawLine(cx - x + 1, yi, cx + x - 1, yi);
+                    setDrawColor(r, g, b, a);
+                    drawLine(cx - x + 1, yi, cx + x - 1, yi);
                 }
             }
 
@@ -333,8 +333,8 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
                 if (v < 0) break;
                 if (v > 1.0) v = 1.0;
 
-                gfx::setDrawColor(r, g, b, (double)a * v);
-                gfx::fillPixel(xi, yi);
+                setDrawColor(r, g, b, (double)a * v);
+                fillPixel(xi, yi);
 
                 xi -= 1;
             }
@@ -353,8 +353,8 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
                 if (v < 0) break;
                 if (v > 1.0) v = 1.0;
 
-                gfx::setDrawColor(r, g, b, (double)a * v);
-                gfx::fillPixel(xi, yi);
+                setDrawColor(r, g, b, (double)a * v);
+                fillPixel(xi, yi);
 
                 xi += 1;
             }
@@ -381,8 +381,8 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
 
                 if (y >= 0.5)
                 {
-                    gfx::setDrawColor(r, g, b, a);
-                    gfx::drawLine(xi, cy - y + 1, xi, cy + y - 1);
+                    setDrawColor(r, g, b, a);
+                    drawLine(xi, cy - y + 1, xi, cy + y - 1);
                 }
             }
 
@@ -402,8 +402,8 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
                 if (v < 0) break;
                 if (v > 1.0) v = 1.0;
 
-                gfx::setDrawColor(r, g, b, (double)a * v);
-                gfx::fillPixel(xi, yi);
+                setDrawColor(r, g, b, (double)a * v);
+                fillPixel(xi, yi);
 
                 yi -= 1;
             }
@@ -422,23 +422,23 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
                 if (v < 0) break;
                 if (v > 1.0) v = 1.0;
 
-                gfx::setDrawColor(r, g, b, (double)a * v);
-                gfx::fillPixel(xi, yi);
+                setDrawColor(r, g, b, (double)a * v);
+                fillPixel(xi, yi);
 
                 yi += 1;
             }
         }
     }
 
-    gfx::setDrawColor(r, g, b, a);
+    setDrawColor(r, g, b, a);
 }
 
-void gfx::fillCircle(float x, float y, float radius)
+void fillCircle(float x, float y, float radius)
 {
-    gfx::fillEllipse(x, y, radius, radius);
+    fillEllipse(x, y, radius, radius);
 }
 
-void gfx::renderTexture(SDL_Texture* texture, SDL_Rect* rect)
+void renderTexture(SDL_Texture* texture, SDL_Rect* rect)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -448,3 +448,5 @@ void gfx::renderTexture(SDL_Texture* texture, SDL_Rect* rect)
         exit(1);
     }
 }
+
+} // namespace smocc::gfx

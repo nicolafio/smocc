@@ -20,29 +20,34 @@ Public License 3.0.
 
 using namespace std;
 
-#define WINDOW_WIDTH 1000
-#define WINDOW_HEIGHT 720
-#define GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS 8
+int main(int argc, char* argv[]) { return smocc::main(argc, argv); }
 
-SDL_Window* window;
-SDL_Renderer* renderer;
-bool quit = false;
+namespace smocc
+{
 
-void init(int, char*[]);
-void event(SDL_Event*);
-void update();
+const int _WINDOW_WIDTH = 1000;
+const int _WINDOW_HEIGHT = 720;
+const int _GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS = 8;
+
+SDL_Window* _window;
+SDL_Renderer* _renderer;
+bool _quit = false;
+
+void _init(int, char*[]);
+void _event(SDL_Event*);
+void _update();
 
 int main(int argc, char* argv[])
 {
-    init(argc, argv);
+    _init(argc, argv);
 
-    while (!quit)
-        update();
+    while (!_quit)
+        _update();
 
     return 0;
 }
 
-void init(int argc, char* argv[])
+void _init(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO))
     {
@@ -50,13 +55,13 @@ void init(int argc, char* argv[])
         exit(1);
     }
 
-    int w = WINDOW_WIDTH;
-    int h = WINDOW_HEIGHT;
+    int w = _WINDOW_WIDTH;
+    int h = _WINDOW_HEIGHT;
     int flags = 0;
 
-    if (SDL_CreateWindowAndRenderer(w, h, flags, &window, &renderer))
+    if (SDL_CreateWindowAndRenderer(w, h, flags, &_window, &_renderer))
     {
-        cerr << "Failed to open window: " << SDL_GetError() << endl;
+        cerr << "Failed to open _window: " << SDL_GetError() << endl;
         exit(1);
     }
 
@@ -66,36 +71,38 @@ void init(int argc, char* argv[])
     smocc::enemies::init();
 }
 
-void event(SDL_Event* e)
+void _event(SDL_Event* e)
 {
     int type = e->type;
 
     if (type == SDL_QUIT)
     {
-        quit = true;
+        _quit = true;
         return;
     }
 }
 
-void update()
+void _update()
 {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+    SDL_RenderClear(_renderer);
 
     SDL_Event e;
 
-    while (!quit && SDL_PollEvent(&e))
-        event(&e);
+    while (!_quit && SDL_PollEvent(&e))
+        _event(&e);
 
     smocc::ui::update();
     smocc::game::update();
     smocc::player::update();
     smocc::enemies::update();
 
-    SDL_RenderPresent(renderer);
-    SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
+    SDL_RenderPresent(_renderer);
+    SDL_Delay(_GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
 }
 
-SDL_Window* smocc::getWindow() { return window; }
+SDL_Window* getWindow() { return _window; }
 
-SDL_Renderer* smocc::getRenderer() { return renderer; }
+SDL_Renderer* getRenderer() { return _renderer; }
+
+} // namespace smocc
