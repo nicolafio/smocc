@@ -1,4 +1,4 @@
-flags := -std=c++17 $(shell sdl2-config --cflags --libs) -lSDL2_ttf
+flags := -std=c++20 $(shell sdl2-config --cflags --libs) -lSDL2_ttf
 all_sources := $(wildcard src/*.cc)
 all_objects := $(patsubst src/%.cc,obj/%.o,$(all_sources))
 

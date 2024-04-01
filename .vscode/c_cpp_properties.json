@@ -11,11 +11,11 @@
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
             ],
             "compilerPath": "/usr/bin/clang",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cStandard": "c23",
+            "cppStandard": "c++23",
             "intelliSenseMode": "macos-clang-arm64",
             "compilerArgs": [
-                "-std=c++17",
+                "-std=c++20",
                 "-D_THREAD_SAFE",
                 "-lSDL2",
                 "-lSDL2_ttf"
