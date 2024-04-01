@@ -27,7 +27,6 @@ using namespace smocc;
 bool spawned;
 double xPosition;
 double yPosition;
-bool firstUpdate;
 Uint64 lastUpdateTimeMilliseconds;
 
 SDL_Color playerColor = SMOCC_FOREGROUND_COLOR;
