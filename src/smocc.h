@@ -14,6 +14,8 @@ Public License 3.0.
 
 namespace smocc
 {
-    SDL_Window* getWindow();
-    SDL_Renderer* getRenderer();
-}
+
+SDL_Window* getWindow();
+SDL_Renderer* getRenderer();
+
+} // namespace smocc

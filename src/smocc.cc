@@ -9,24 +9,24 @@ Public License 3.0.
 
 */
 
-#include <iostream>
 #include <SDL.h>
+#include <iostream>
 
-#include "smocc.h"
-#include "ui.h"
+#include "enemies.h"
 #include "game.h"
 #include "player.h"
-#include "enemies.h"
+#include "smocc.h"
+#include "ui.h"
 
 using namespace std;
 
-#define WINDOW_WIDTH  1000
+#define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 720
 #define GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS 8
 
-SDL_Window   *window;
-SDL_Renderer *renderer;
-bool         quit = false;
+SDL_Window* window;
+SDL_Renderer* renderer;
+bool quit = false;
 
 void init(int, char*[]);
 void event(SDL_Event*);
@@ -36,7 +36,8 @@ int main(int argc, char* argv[])
 {
     init(argc, argv);
 
-    while (!quit) update();
+    while (!quit)
+        update();
 
     return 0;
 }
@@ -65,7 +66,7 @@ void init(int argc, char* argv[])
     smocc::enemies::init();
 }
 
-void event(SDL_Event *e)
+void event(SDL_Event* e)
 {
     int type = e->type;
 
@@ -83,7 +84,8 @@ void update()
 
     SDL_Event e;
 
-    while (!quit && SDL_PollEvent(&e)) event(&e);
+    while (!quit && SDL_PollEvent(&e))
+        event(&e);
 
     smocc::ui::update();
     smocc::game::update();
@@ -94,12 +96,6 @@ void update()
     SDL_Delay(GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
 }
 
-SDL_Window* smocc::getWindow()
-{
-    return window;
-}
+SDL_Window* smocc::getWindow() { return window; }
 
-SDL_Renderer* smocc::getRenderer()
-{
-    return renderer;
-}
+SDL_Renderer* smocc::getRenderer() { return renderer; }

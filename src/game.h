@@ -13,12 +13,14 @@ Public License 3.0.
 
 namespace smocc::game
 {
-    void init();
-    void begin();
-    void update();
-    void end();
-    bool isRunning();
-    int getScore();
-    double getDifficulty();
-    unsigned long long getTimeElapsedMilliseconds();
-}
+
+void init();
+void begin();
+void update();
+void end();
+bool isRunning();
+int getScore();
+double getDifficulty();
+unsigned long long getTimeElapsedMilliseconds();
+
+} // namespace smocc::game

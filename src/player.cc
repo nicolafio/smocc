@@ -9,14 +9,14 @@ Public License 3.0.
 
 */
 
-#include <iostream>
 #include <SDL.h>
+#include <iostream>
 
-#include "smocc.h"
-#include "player.h"
-#include "game.h"
 #include "colors.h"
+#include "game.h"
 #include "gfx.h"
+#include "player.h"
+#include "smocc.h"
 
 using namespace std;
 using namespace smocc;
@@ -32,10 +32,7 @@ Uint64 lastUpdateTimeMilliseconds;
 
 SDL_Color playerColor = SMOCC_FOREGROUND_COLOR;
 
-void player::init()
-{
-    spawned = false;
-}
+void player::init() { spawned = false; }
 
 void player::spawn()
 {
@@ -118,12 +115,6 @@ void player::update()
     gfx::fillCircle(xPosition, yPosition, PLAYER_CIRCLE_RADIUS);
 }
 
-double player::getXPosition()
-{
-    return xPosition;
-}
+double player::getXPosition() { return xPosition; }
 
-double player::getYPosition()
-{
-    return yPosition;
-}
+double player::getYPosition() { return yPosition; }

@@ -9,25 +9,27 @@ Public License 3.0.
 
 */
 
-#include <iostream>
-#include <unordered_map>
-#include <random>
 #include <cmath>
+#include <iostream>
+#include <random>
+#include <unordered_map>
 
 #include <SDL.h>
 
-#include "smocc.h"
+#include "colors.h"
 #include "enemies.h"
 #include "game.h"
-#include "player.h"
 #include "gfx.h"
-#include "colors.h"
+#include "player.h"
+#include "smocc.h"
 
 using namespace std;
 using namespace smocc;
 
-namespace smocc {
-namespace enemies {
+namespace smocc
+{
+namespace enemies
+{
 
 const int SPAWN_DELAY_MILLISECONDS = 500;
 const double MIN_ENEMY_HEALTH = 1.0;
@@ -47,7 +49,8 @@ unsigned long long _spawnRollsDone;
 bool _resetDone;
 int _lastUpdateTimeMilliseconds;
 
-struct Enemy {
+struct Enemy
+{
     unsigned long long id;
     int health;
     double x;
@@ -188,13 +191,11 @@ void _doNecessarySpawnRolls()
 {
     unsigned long long rollsToDo = _getSpawnRollsToDo();
 
-    for (unsigned long long i = 0; i < rollsToDo; i++) _rollEnemySpawn();
+    for (unsigned long long i = 0; i < rollsToDo; i++)
+        _rollEnemySpawn();
 }
 
-void init()
-{
-    _reset();
-}
+void init() { _reset(); }
 
 void update()
 {
@@ -244,7 +245,8 @@ void update()
         const double radiusRange = MAX_ENEMY_RADIUS - MIN_ENEMY_RADIUS;
         double radiusFactor = enemy.health / MAX_ENEMY_HEALTH;
         double targetRadius = MIN_ENEMY_RADIUS + radiusRange * radiusFactor;
-        double radiusChange = ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTimeMilliseconds;
+        double radiusChange =
+            ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTimeMilliseconds;
 
         if (enemy.radius < targetRadius)
         {

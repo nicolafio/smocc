@@ -13,9 +13,11 @@ Public License 3.0.
 
 namespace smocc::player
 {
-    void init();
-    void spawn();
-    void update();
-    double getXPosition();
-    double getYPosition();
-}
+
+void init();
+void spawn();
+void update();
+double getXPosition();
+double getYPosition();
+
+} // namespace smocc::player

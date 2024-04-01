@@ -12,8 +12,8 @@ Public License 3.0.
 #include "game.h"
 #include "player.h"
 
-#include <iostream>
 #include <SDL.h>
+#include <iostream>
 
 using namespace std;
 using namespace smocc;
@@ -28,10 +28,7 @@ int score;
 double difficulty;
 unsigned long long gameStartTimeMilliseconds;
 
-void game::init()
-{
-    gameRunning = false;
-}
+void game::init() { gameRunning = false; }
 
 void game::begin()
 {
@@ -56,25 +53,13 @@ void game::update()
     difficulty = MIN_DIFFICULTY + DIFFICULTY_RANGE * difficultyFactor;
 }
 
-void game::end()
-{
-    gameRunning = false;
-}
+void game::end() { gameRunning = false; }
 
-bool game::isRunning()
-{
-    return gameRunning;
-}
+bool game::isRunning() { return gameRunning; }
 
-int game::getScore()
-{
-    return score;
-}
+int game::getScore() { return score; }
 
-double game::getDifficulty()
-{
-    return difficulty;
-}
+double game::getDifficulty() { return difficulty; }
 
 unsigned long long game::getTimeElapsedMilliseconds()
 {

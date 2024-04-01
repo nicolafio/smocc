@@ -13,6 +13,8 @@ Public License 3.0.
 
 namespace smocc::enemies
 {
-    void init();
-    void update();
-}
+
+void init();
+void update();
+
+} // namespace smocc::enemies

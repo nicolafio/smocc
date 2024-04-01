@@ -9,14 +9,14 @@ Public License 3.0.
 
 */
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <string>
 
-#include "smocc.h"
-#include "gfx.h"
-#include "game.h"
 #include "colors.h"
+#include "game.h"
+#include "gfx.h"
+#include "smocc.h"
 #include "ui.h"
 
 using namespace std;
@@ -57,12 +57,8 @@ TTF_Font* font;
 SDL_Color fgColor = SMOCC_FOREGROUND_COLOR;
 SDL_Color bgColor = SMOCC_BACKGROUND_COLOR;
 
-SDL_Color btnBorderColor = {
-    fgColor.r,
-    fgColor.g,
-    fgColor.b,
-    MENU_BTN_BORDER_OPACITY
-};
+SDL_Color btnBorderColor = {fgColor.r, fgColor.g, fgColor.b,
+                            MENU_BTN_BORDER_OPACITY};
 
 SDL_Color black = {0, 0, 0, 255};
 
@@ -76,11 +72,9 @@ int titleWidth, titleHeight;
 
 bool mainMenuVisible;
 
-SDL_Rect computeMenuButtonRect(
-    SDL_Rect* windowRect,
-    SDL_Texture* textTexture,
-    int yPosition
-) {
+SDL_Rect computeMenuButtonRect(SDL_Rect* windowRect, SDL_Texture* textTexture,
+                               int yPosition)
+{
     SDL_Rect rect;
     rect.w = MENU_BTN_WIDTH_PIXELS;
     rect.h = gfx::getTextureHeight(textTexture) + 2 * MENU_BTN_PADDING_PIXELS;
@@ -90,11 +84,9 @@ SDL_Rect computeMenuButtonRect(
     return rect;
 }
 
-void renderMenuButton(
-    SDL_Rect* buttonRect,
-    SDL_Texture* textTexture,
-    SDL_Texture* hoverTextTexture
-) {
+void renderMenuButton(SDL_Rect* buttonRect, SDL_Texture* textTexture,
+                      SDL_Texture* hoverTextTexture)
+{
     SDL_Renderer* renderer = smocc::getRenderer();
 
     bool hover = gfx::isMouseInRect(buttonRect);
@@ -177,18 +169,13 @@ void ui::update()
     int playBtnYPosition = titleRect.y + titleRect.h + TITLE_MARGINS_PIXELS;
 
     SDL_Rect playBtnRect = computeMenuButtonRect(
-        &windowRect,
-        playBtnTextTexture,
-        playBtnYPosition
-    );
+        &windowRect, playBtnTextTexture, playBtnYPosition);
 
-    int infoBtnYPosition = playBtnRect.y + playBtnRect.h + MENU_BTN_MARGIN_PIXELS;
+    int infoBtnYPosition =
+        playBtnRect.y + playBtnRect.h + MENU_BTN_MARGIN_PIXELS;
 
     SDL_Rect infoBtnRect = computeMenuButtonRect(
-        &windowRect,
-        infoBtnTextTexture,
-        infoBtnYPosition
-    );
+        &windowRect, infoBtnTextTexture, infoBtnYPosition);
 
     gfx::renderTexture(titleTexture, &titleRect);
     renderMenuButton(&playBtnRect, playBtnTextTexture, playBtnTextHoverTexture);

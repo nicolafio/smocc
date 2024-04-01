@@ -47,8 +47,8 @@ Richard Russell -- richard at rtrussell dot co dot uk
 
 #include <iostream>
 
-#include "smocc.h"
 #include "gfx.h"
+#include "smocc.h"
 
 using namespace std;
 using namespace smocc;
@@ -87,10 +87,9 @@ bool gfx::isMouseInRect(SDL_Rect* rect)
     return isPointInRect(mouseX, mouseY, rect);
 }
 
-bool gfx::circlesOverlap(
-    double x1, double y1, double r1,
-    double x2, double y2, double r2
-) {
+bool gfx::circlesOverlap(double x1, double y1, double r1, double x2, double y2,
+                         double r2)
+{
     double dx = x1 - x2;
     double dy = y1 - y2;
     double distance = sqrt(dx * dx + dy * dy);
@@ -98,14 +97,9 @@ bool gfx::circlesOverlap(
     return distance < r1 + r2;
 }
 
-void gfx::getDirection(
-    double originX,
-    double originY,
-    double targetX,
-    double targetY,
-    double* directionX,
-    double* directionY
-) {
+void gfx::getDirection(double originX, double originY, double targetX,
+                       double targetY, double* directionX, double* directionY)
+{
     double dx = targetX - originX;
     double dy = targetY - originY;
     double distance = sqrt(dx * dx + dy * dy);
@@ -113,7 +107,6 @@ void gfx::getDirection(
     *directionX = dx / distance;
     *directionY = dy / distance;
 }
-
 
 TTF_Font* gfx::openFont(fs::path& fontPath, int size)
 {
@@ -221,7 +214,8 @@ void gfx::setDrawBlendMode(SDL_BlendMode blendMode)
 
     if (SDL_SetRenderDrawBlendMode(renderer, blendMode))
     {
-        cerr << "Failed to set render draw blend mode: " << SDL_GetError() << endl;
+        cerr << "Failed to set render draw blend mode: " << SDL_GetError()
+             << endl;
         exit(1);
     }
 }
@@ -293,62 +287,61 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
 
     gfx::getDrawColor(&r, &g, &b, &a);
 
-	int n, xi, yi, result = 0 ;
-	double s, v, x, y, dx, dy ;
+    int n, xi, yi, result = 0;
+    double s, v, x, y, dx, dy;
 
-	if ((rx <= 0.0) || (ry <= 0.0))
-        return;
+    if ((rx <= 0.0) || (ry <= 0.0)) return;
 
-	if (rx >= ry)
-	{
-		n = ry + 1;
+    if (rx >= ry)
+    {
+        n = ry + 1;
 
-		for (yi = cy - n - 1; yi <= cy + n + 1; yi++)
-		{
+        for (yi = cy - n - 1; yi <= cy + n + 1; yi++)
+        {
             y = yi;
 
             if (yi >= cy - 0.5) y += 1;
 
-			s = (y - cy) / ry;
-			s = s * s;
-			x = 0.5;
+            s = (y - cy) / ry;
+            s = s * s;
+            x = 0.5;
 
-			if (s < 1.0)
-			{
-				x = rx * sqrt(1.0 - s);
+            if (s < 1.0)
+            {
+                x = rx * sqrt(1.0 - s);
 
-				if (x >= 0.5)
-				{
+                if (x >= 0.5)
+                {
                     gfx::setDrawColor(r, g, b, a);
-					gfx::drawLine(cx - x + 1, yi, cx + x - 1, yi);
-				}
-			}
+                    gfx::drawLine(cx - x + 1, yi, cx + x - 1, yi);
+                }
+            }
 
-			s = 8 * ry * ry;
-			dy = fabs(y - cy) - 1.0;
-			xi = cx - x ; // left
+            s = 8 * ry * ry;
+            dy = fabs(y - cy) - 1.0;
+            xi = cx - x; // left
 
-			while (true)
-			{
-				dx = (cx - xi - 1) * ry / rx;
-				v = s - 4 * (dx - dy) * (dx - dy);
+            while (true)
+            {
+                dx = (cx - xi - 1) * ry / rx;
+                v = s - 4 * (dx - dy) * (dx - dy);
 
-				if (v < 0) break;
+                if (v < 0) break;
 
-				v = (sqrt(v) - 2 * (dx + dy)) / 4;
+                v = (sqrt(v) - 2 * (dx + dy)) / 4;
 
-				if (v < 0) break;
-				if (v > 1.0) v = 1.0;
+                if (v < 0) break;
+                if (v > 1.0) v = 1.0;
 
-				gfx::setDrawColor(r, g, b, (double)a * v);
-				gfx::fillPixel(xi, yi);
+                gfx::setDrawColor(r, g, b, (double)a * v);
+                gfx::fillPixel(xi, yi);
 
-				xi -= 1;
-			}
+                xi -= 1;
+            }
 
-			xi = cx + x ; // right
+            xi = cx + x; // right
 
-			while (true)
+            while (true)
             {
                 dx = (xi - cx) * ry / rx;
                 v = s - 4 * (dx - dy) * (dx - dy);
@@ -368,74 +361,74 @@ void gfx::fillEllipse(float cx, float cy, float rx, float ry)
         }
     }
 
-	if (rx < ry)
-	{
-		n = rx + 1;
+    if (rx < ry)
+    {
+        n = rx + 1;
 
-		for (xi = cx - n - 1; xi <= cx + n + 1; xi++)
-		{
+        for (xi = cx - n - 1; xi <= cx + n + 1; xi++)
+        {
             x = xi;
 
             if (xi >= (cx - 0.5)) x += 1;
 
-			s = (x - cx) / rx;
-			s = s * s;
-			y = 0.5;
+            s = (x - cx) / rx;
+            s = s * s;
+            y = 0.5;
 
-			if (s < 1.0)
-			{
-				y = ry * sqrt(1.0 - s);
+            if (s < 1.0)
+            {
+                y = ry * sqrt(1.0 - s);
 
-				if (y >= 0.5)
-				{
-					gfx::setDrawColor(r, g, b, a);
-					gfx::drawLine(xi, cy - y + 1, xi, cy + y - 1);
-				}
-			}
+                if (y >= 0.5)
+                {
+                    gfx::setDrawColor(r, g, b, a);
+                    gfx::drawLine(xi, cy - y + 1, xi, cy + y - 1);
+                }
+            }
 
-			s = 8 * rx * rx;
-			dx = fabs(x - cx) - 1.0;
-			yi = cy - y ; // top
+            s = 8 * rx * rx;
+            dx = fabs(x - cx) - 1.0;
+            yi = cy - y; // top
 
-			while (true)
-			{
-				dy = (cy - yi - 1) * rx / ry;
-				v = s - 4 * (dy - dx) * (dy - dx);
+            while (true)
+            {
+                dy = (cy - yi - 1) * rx / ry;
+                v = s - 4 * (dy - dx) * (dy - dx);
 
-				if (v < 0) break;
+                if (v < 0) break;
 
-				v = (sqrt(v) - 2 * (dy + dx)) / 4;
+                v = (sqrt(v) - 2 * (dy + dx)) / 4;
 
-				if (v < 0) break;
-				if (v > 1.0) v = 1.0;
+                if (v < 0) break;
+                if (v > 1.0) v = 1.0;
 
-				gfx::setDrawColor(r, g, b, (double)a * v);
-				gfx::fillPixel(xi, yi);
+                gfx::setDrawColor(r, g, b, (double)a * v);
+                gfx::fillPixel(xi, yi);
 
-				yi -= 1;
-			}
+                yi -= 1;
+            }
 
-			yi = cy + y ; // bottom
+            yi = cy + y; // bottom
 
-			while (true)
-			{
-				dy = (yi - cy) * rx / ry;
-				v = s - 4 * (dy - dx) * (dy - dx);
+            while (true)
+            {
+                dy = (yi - cy) * rx / ry;
+                v = s - 4 * (dy - dx) * (dy - dx);
 
-    			if (v < 0) break;
+                if (v < 0) break;
 
-    			v = (sqrt(v) - 2 * (dy + dx)) / 4;
+                v = (sqrt(v) - 2 * (dy + dx)) / 4;
 
-    			if (v < 0) break;
-				if (v > 1.0) v = 1.0;
+                if (v < 0) break;
+                if (v > 1.0) v = 1.0;
 
-    			gfx::setDrawColor(r, g, b, (double)a * v);
-				gfx::fillPixel(xi, yi);
+                gfx::setDrawColor(r, g, b, (double)a * v);
+                gfx::fillPixel(xi, yi);
 
-    			yi += 1;
-			}
-		}
-	}
+                yi += 1;
+            }
+        }
+    }
 
     gfx::setDrawColor(r, g, b, a);
 }

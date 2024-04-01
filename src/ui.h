@@ -13,6 +13,8 @@ Public License 3.0.
 
 namespace smocc::ui
 {
-    void init(int, char**);
-    void update();
-}
+
+void init(int, char**);
+void update();
+
+} // namespace smocc::ui
