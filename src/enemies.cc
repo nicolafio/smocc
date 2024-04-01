@@ -26,9 +26,7 @@ Public License 3.0.
 using namespace std;
 using namespace smocc;
 
-namespace smocc
-{
-namespace enemies
+namespace smocc::enemies
 {
 
 const int SPAWN_DELAY_MILLISECONDS = 500;
@@ -309,5 +307,4 @@ void update()
     }
 }
 
-} // namespace enemies
-} // namespace smocc
+} // namespace smocc::enemies
