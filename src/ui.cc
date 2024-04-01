@@ -63,8 +63,6 @@ SDL_Color _BG_COLOR = SMOCC_BACKGROUND_COLOR;
 SDL_Color _BTN_BORDER_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
                                _MENU_BTN_BORDER_OPACITY};
 
-SDL_Color _BLACK = {0, 0, 0, 255};
-
 SDL_Texture* _titleTexture;
 SDL_Texture* _playBtnTextTexture;
 SDL_Texture* _playBtnTextHoverTexture;
