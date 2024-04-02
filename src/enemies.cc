@@ -157,7 +157,7 @@ void _rollEnemySpawn()
         _spawnEnemy();
     }
 
-    if (enemiesCount > 0 && enemiesCount < _maxEnemies)
+    if (enemiesCount >= MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
     {
         double spawnChance = game::getDifficulty();
         double roll = _rng(_gen);
