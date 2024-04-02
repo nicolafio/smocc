@@ -203,6 +203,8 @@ void update()
         return;
     }
 
+    _resetDone = false;
+
     double difficulty = game::getDifficulty();
 
     _maxEnemies = MAX_ENEMY_COUNT * difficulty;
