@@ -58,7 +58,7 @@ namespace fs = std::filesystem;
 namespace smocc::gfx
 {
 
-SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
+SDL_Cursor* systemCursor(SDL_SystemCursor cursor)
 {
     SDL_Cursor* newCursor = SDL_CreateSystemCursor(cursor);
 
@@ -71,23 +71,23 @@ SDL_Cursor* createSystemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
-bool isPointInRect(int x, int y, SDL_Rect* rect)
+bool pointInRect(int x, int y, SDL_Rect* rect)
 {
-    return isPointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
+    return pointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
 }
 
-bool isPointInRect(int x, int y, int rx, int ry, int rw, int rh)
+bool pointInRect(int x, int y, int rx, int ry, int rw, int rh)
 {
     return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
 
-bool isMouseInRect(SDL_Rect* rect)
+bool mouseInRect(SDL_Rect* rect)
 {
     int mouseX, mouseY;
 
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    return isPointInRect(mouseX, mouseY, rect);
+    return pointInRect(mouseX, mouseY, rect);
 }
 
 bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
@@ -100,8 +100,8 @@ bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
     return distance < r1 + r2;
 }
 
-void getDirection(double originX, double originY, double targetX,
-                  double targetY, double* directionX, double* directionY)
+void direction(double originX, double originY, double targetX, double targetY,
+               double* directionX, double* directionY)
 {
     double dx = targetX - originX;
     double dy = targetY - originY;
@@ -111,7 +111,7 @@ void getDirection(double originX, double originY, double targetX,
     *directionY = dy / distance;
 }
 
-TTF_Font* openFont(fs::path& fontPath, int size)
+TTF_Font* font(fs::path& fontPath, int size)
 {
     TTF_Font* font = TTF_OpenFont(fontPath.c_str(), size);
 
@@ -124,7 +124,7 @@ TTF_Font* openFont(fs::path& fontPath, int size)
     return font;
 }
 
-SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color)
+SDL_Texture* text(TTF_Font* font, char const* text, SDL_Color color)
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
@@ -155,7 +155,7 @@ SDL_Texture* createText(TTF_Font* font, char const* text, SDL_Color color)
     return texture;
 }
 
-SDL_Rect getTextureSize(SDL_Texture* texture)
+SDL_Rect textureSize(SDL_Texture* texture)
 {
     SDL_Rect size;
     size.x = 0;
@@ -171,7 +171,7 @@ SDL_Rect getTextureSize(SDL_Texture* texture)
     return size;
 }
 
-int getTextureHeight(SDL_Texture* texture)
+int textureHeight(SDL_Texture* texture)
 {
     int height;
 

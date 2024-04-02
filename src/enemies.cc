@@ -273,14 +273,14 @@ void update()
             return;
         }
 
-        if (!gfx::isPointInRect(x, y, 0, 0, windowWidth, windowHeight))
+        if (!gfx::pointInRect(x, y, 0, 0, windowWidth, windowHeight))
         {
             double targetX = player::getXPosition();
             double targetY = player::getYPosition();
 
             double xDirection, yDirection;
 
-            gfx::getDirection(x, y, targetX, targetY, &xDirection, &yDirection);
+            gfx::direction(x, y, targetX, targetY, &xDirection, &yDirection);
 
             enemy.xSpeed = xDirection * enemy.speed;
             enemy.ySpeed = yDirection * enemy.speed;
@@ -301,7 +301,7 @@ void update()
 
             double xDirection, yDirection;
 
-            gfx::getDirection(x, y, otherX, otherY, &xDirection, &yDirection);
+            gfx::direction(x, y, otherX, otherY, &xDirection, &yDirection);
 
             enemy.xSpeed = -xDirection * enemy.speed;
             enemy.ySpeed = -yDirection * enemy.speed;

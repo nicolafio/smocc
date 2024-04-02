@@ -100,7 +100,7 @@ SDL_Rect _computeMenuButtonRect(SDL_Texture* textTexture, int yPosition)
 {
     SDL_Rect rect;
     rect.w = _MENU_BTN_WIDTH_PIXELS;
-    rect.h = gfx::getTextureHeight(textTexture) + 2 * _MENU_BTN_PADDING_PIXELS;
+    rect.h = gfx::textureHeight(textTexture) + 2 * _MENU_BTN_PADDING_PIXELS;
     rect.x = _uiRect.x + (_uiRect.w - rect.w) / 2;
     rect.y = yPosition;
 
@@ -112,9 +112,9 @@ void _renderMenuButton(SDL_Rect* buttonRect, SDL_Texture* textTexture,
 {
     SDL_Renderer* renderer = smocc::getRenderer();
 
-    bool hover = gfx::isMouseInRect(buttonRect);
+    bool hover = gfx::mouseInRect(buttonRect);
 
-    SDL_Rect textRect = gfx::getTextureSize(textTexture);
+    SDL_Rect textRect = gfx::textureSize(textTexture);
 
     textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
     textRect.y = buttonRect->y + _MENU_BTN_PADDING_PIXELS;
@@ -138,8 +138,8 @@ void _renderMenuButton(SDL_Rect* buttonRect, SDL_Texture* textTexture,
 
 void init(int argc, char* argv[])
 {
-    _arrowCursor = gfx::createSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-    _handCursor = gfx::createSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    _arrowCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    _handCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_HAND);
     _mainMenuVisible = true;
     _gameOverVisible = false;
     _hoveringOverUIButton = false;
@@ -155,25 +155,23 @@ void init(int argc, char* argv[])
     fs::path fontPath = programDir / _INCONSOLATA_LGC_FONT_PATH;
     fs::path boldFontPath = programDir / _INCONSOLATA_LGC_BOLD_FONT_PATH;
 
-    _font = gfx::openFont(fontPath, _BODY_FONT_SIZE_PIXELS);
-    _boldFont = gfx::openFont(boldFontPath, _BODY_FONT_SIZE_PIXELS);
-    _titleFont = gfx::openFont(boldFontPath, _TITLE_FONT_SIZE_PIXELS);
+    _font = gfx::font(fontPath, _BODY_FONT_SIZE_PIXELS);
+    _boldFont = gfx::font(boldFontPath, _BODY_FONT_SIZE_PIXELS);
+    _titleFont = gfx::font(boldFontPath, _TITLE_FONT_SIZE_PIXELS);
 
-    _titleTexture = gfx::createText(_titleFont, _TITLE, _FG_COLOR);
-    _playBtnTextTexture = gfx::createText(_font, _PLAY_TEXT, _FG_COLOR);
-    _playBtnTextHoverTexture = gfx::createText(_font, _PLAY_TEXT, _BG_COLOR);
-    _infoBtnTextTexture = gfx::createText(_font, _INFO_TEXT, _FG_COLOR);
-    _infoBtnTextHoverTexture = gfx::createText(_font, _INFO_TEXT, _BG_COLOR);
+    _titleTexture = gfx::text(_titleFont, _TITLE, _FG_COLOR);
+    _playBtnTextTexture = gfx::text(_font, _PLAY_TEXT, _FG_COLOR);
+    _playBtnTextHoverTexture = gfx::text(_font, _PLAY_TEXT, _BG_COLOR);
+    _infoBtnTextTexture = gfx::text(_font, _INFO_TEXT, _FG_COLOR);
+    _infoBtnTextHoverTexture = gfx::text(_font, _INFO_TEXT, _BG_COLOR);
 
-    _gameOverTextTexture =
-        gfx::createText(_boldFont, _GAME_OVER_TEXT, _FG_COLOR);
-    _tryAgainTextTexture = gfx::createText(_font, _TRY_AGAIN_TEXT, _FG_COLOR);
-    _tryAgainTextHoverTexture =
-        gfx::createText(_font, _TRY_AGAIN_TEXT, _BG_COLOR);
+    _gameOverTextTexture = gfx::text(_boldFont, _GAME_OVER_TEXT, _FG_COLOR);
+    _tryAgainTextTexture = gfx::text(_font, _TRY_AGAIN_TEXT, _FG_COLOR);
+    _tryAgainTextHoverTexture = gfx::text(_font, _TRY_AGAIN_TEXT, _BG_COLOR);
     _backToMainMenuTextTexture =
-        gfx::createText(_font, _BACK_TO_MAIN_MENU_TEXT, _FG_COLOR);
+        gfx::text(_font, _BACK_TO_MAIN_MENU_TEXT, _FG_COLOR);
     _backToMainMenuTextHoverTexture =
-        gfx::createText(_font, _BACK_TO_MAIN_MENU_TEXT, _BG_COLOR);
+        gfx::text(_font, _BACK_TO_MAIN_MENU_TEXT, _BG_COLOR);
 
     SDL_QueryTexture(_titleTexture, NULL, NULL, &_titleWidth, &_titleHeight);
 
@@ -184,11 +182,11 @@ void init(int argc, char* argv[])
     _gameOverViewHeight += _gameOverTextHeight;
     _gameOverViewHeight += _GAME_OVER_TEXT_MARGIN;
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
-    _gameOverViewHeight += gfx::getTextureHeight(_tryAgainTextTexture);
+    _gameOverViewHeight += gfx::textureHeight(_tryAgainTextTexture);
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
     _gameOverViewHeight += _MENU_BTN_MARGIN_PIXELS;
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
-    _gameOverViewHeight += gfx::getTextureHeight(_backToMainMenuTextTexture);
+    _gameOverViewHeight += gfx::textureHeight(_backToMainMenuTextTexture);
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
 }
 
@@ -248,8 +246,8 @@ void _updateMainMenu()
     _renderMenuButton(&infoBtnRect, _infoBtnTextTexture,
                       _infoBtnTextHoverTexture);
 
-    bool playBtnHovering = gfx::isMouseInRect(&playBtnRect);
-    bool infoBtnHovering = gfx::isMouseInRect(&infoBtnRect);
+    bool playBtnHovering = gfx::mouseInRect(&playBtnRect);
+    bool infoBtnHovering = gfx::mouseInRect(&infoBtnRect);
 
     _hoveringOverUIButton = playBtnHovering || infoBtnHovering;
 
@@ -297,8 +295,8 @@ void _updateGameOver()
     _renderMenuButton(&backToMainMenuBtnRect, _backToMainMenuTextTexture,
                       _backToMainMenuTextHoverTexture);
 
-    bool tryAgainBtnHovering = gfx::isMouseInRect(&tryAgainBtnRect);
-    bool backToMainMenuBtnHovering = gfx::isMouseInRect(&backToMainMenuBtnRect);
+    bool tryAgainBtnHovering = gfx::mouseInRect(&tryAgainBtnRect);
+    bool backToMainMenuBtnHovering = gfx::mouseInRect(&backToMainMenuBtnRect);
 
     _hoveringOverUIButton = tryAgainBtnHovering || backToMainMenuBtnHovering;
 
