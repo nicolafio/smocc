@@ -25,7 +25,6 @@ namespace smocc::player
 {
 
 const double _PLAYER_SPEED = 0.3;
-const int _PLAYER_CIRCLE_RADIUS = 3;
 SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
 
 bool _spawned;
@@ -99,10 +98,10 @@ void update()
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    int minX = _PLAYER_CIRCLE_RADIUS;
-    int minY = _PLAYER_CIRCLE_RADIUS;
-    int maxX = windowWidth - _PLAYER_CIRCLE_RADIUS;
-    int maxY = windowHeight - _PLAYER_CIRCLE_RADIUS;
+    int minX = PLAYER_CIRCLE_RADIUS;
+    int minY = PLAYER_CIRCLE_RADIUS;
+    int maxX = windowWidth - PLAYER_CIRCLE_RADIUS;
+    int maxY = windowHeight - PLAYER_CIRCLE_RADIUS;
 
     if (_xPosition < minX) _xPosition = minX;
     if (_xPosition > maxX) _xPosition = maxX;
@@ -113,7 +112,7 @@ void update()
 
     gfx::setDrawColor(&_PLAYER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
-    gfx::fillCircle(_xPosition, _yPosition, _PLAYER_CIRCLE_RADIUS);
+    gfx::fillCircle(_xPosition, _yPosition, PLAYER_CIRCLE_RADIUS);
 }
 
 double getXPosition() { return _xPosition; }

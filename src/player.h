@@ -14,6 +14,8 @@ Public License 3.0.
 namespace smocc::player
 {
 
+const int PLAYER_CIRCLE_RADIUS = 3;
+
 void init();
 void spawn();
 void update();
