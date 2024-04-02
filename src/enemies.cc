@@ -22,6 +22,7 @@ Public License 3.0.
 #include "gfx.h"
 #include "player.h"
 #include "smocc.h"
+#include "ui.h"
 
 using namespace std;
 using namespace smocc;
@@ -261,6 +262,16 @@ void update()
         double x = enemy.x;
         double y = enemy.y;
         double radius = enemy.radius;
+        double playerX = player::getXPosition();
+        double playerY = player::getYPosition();
+        double playerRadius = player::PLAYER_CIRCLE_RADIUS;
+
+        if (gfx::circlesOverlap(x, y, radius, playerX, playerY, playerRadius))
+        {
+            game::end();
+            ui::showGameOver();
+            return;
+        }
 
         if (!gfx::isPointInRect(x, y, 0, 0, windowWidth, windowHeight))
         {
