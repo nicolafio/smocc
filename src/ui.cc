@@ -51,7 +51,7 @@ const char* _INFO_TEXT = "Info";
 
 const char* _GAME_OVER_TEXT = "Game Over";
 const char* _TRY_AGAIN_TEXT = "Try again";
-const char* _BACK_TO_MAIN_MENU_TEXT = "Back to main menu";
+const char* _BACK_TO_MAIN_TEXT = "Back to main menu";
 
 using namespace std;
 using namespace smocc;
@@ -70,17 +70,17 @@ SDL_Color _BG_COLOR = SMOCC_BACKGROUND_COLOR;
 SDL_Color _BTN_BORDER_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
                                _MENU_BTN_BORDER_OPACITY};
 
-SDL_Texture* _titleTexture;
-SDL_Texture* _playBtnTextTexture;
-SDL_Texture* _playBtnTextHoverTexture;
-SDL_Texture* _infoBtnTextTexture;
-SDL_Texture* _infoBtnTextHoverTexture;
+SDL_Texture* _title;
+SDL_Texture* _playText;
+SDL_Texture* _playHoverText;
+SDL_Texture* _infoText;
+SDL_Texture* _infoHoverText;
 
-SDL_Texture* _gameOverTextTexture;
-SDL_Texture* _tryAgainTextTexture;
-SDL_Texture* _tryAgainTextHoverTexture;
-SDL_Texture* _backToMainMenuTextTexture;
-SDL_Texture* _backToMainMenuTextHoverTexture;
+SDL_Texture* _gameOverText;
+SDL_Texture* _tryAgainText;
+SDL_Texture* _tryAgainHoverText;
+SDL_Texture* _backToMainText;
+SDL_Texture* _backToMainHoverText;
 
 SDL_Rect _uiRect;
 
@@ -96,7 +96,7 @@ bool _pressingLeftMouseButton;
 void _updateMainMenu();
 void _updateGameOver();
 
-SDL_Rect _computeMenuButtonRect(SDL_Texture* textTexture, int yPosition)
+SDL_Rect _btnRect(SDL_Texture* textTexture, int yPosition)
 {
     SDL_Rect rect;
     rect.w = _MENU_BTN_WIDTH_PIXELS;
@@ -159,34 +159,32 @@ void init(int argc, char* argv[])
     _boldFont = gfx::font(boldFontPath, _BODY_FONT_SIZE_PIXELS);
     _titleFont = gfx::font(boldFontPath, _TITLE_FONT_SIZE_PIXELS);
 
-    _titleTexture = gfx::text(_titleFont, _TITLE, _FG_COLOR);
-    _playBtnTextTexture = gfx::text(_font, _PLAY_TEXT, _FG_COLOR);
-    _playBtnTextHoverTexture = gfx::text(_font, _PLAY_TEXT, _BG_COLOR);
-    _infoBtnTextTexture = gfx::text(_font, _INFO_TEXT, _FG_COLOR);
-    _infoBtnTextHoverTexture = gfx::text(_font, _INFO_TEXT, _BG_COLOR);
+    _title = gfx::text(_titleFont, _TITLE, _FG_COLOR);
+    _playText = gfx::text(_font, _PLAY_TEXT, _FG_COLOR);
+    _playHoverText = gfx::text(_font, _PLAY_TEXT, _BG_COLOR);
+    _infoText = gfx::text(_font, _INFO_TEXT, _FG_COLOR);
+    _infoHoverText = gfx::text(_font, _INFO_TEXT, _BG_COLOR);
 
-    _gameOverTextTexture = gfx::text(_boldFont, _GAME_OVER_TEXT, _FG_COLOR);
-    _tryAgainTextTexture = gfx::text(_font, _TRY_AGAIN_TEXT, _FG_COLOR);
-    _tryAgainTextHoverTexture = gfx::text(_font, _TRY_AGAIN_TEXT, _BG_COLOR);
-    _backToMainMenuTextTexture =
-        gfx::text(_font, _BACK_TO_MAIN_MENU_TEXT, _FG_COLOR);
-    _backToMainMenuTextHoverTexture =
-        gfx::text(_font, _BACK_TO_MAIN_MENU_TEXT, _BG_COLOR);
+    _gameOverText = gfx::text(_boldFont, _GAME_OVER_TEXT, _FG_COLOR);
+    _tryAgainText = gfx::text(_font, _TRY_AGAIN_TEXT, _FG_COLOR);
+    _tryAgainHoverText = gfx::text(_font, _TRY_AGAIN_TEXT, _BG_COLOR);
+    _backToMainText = gfx::text(_font, _BACK_TO_MAIN_TEXT, _FG_COLOR);
+    _backToMainHoverText = gfx::text(_font, _BACK_TO_MAIN_TEXT, _BG_COLOR);
 
-    SDL_QueryTexture(_titleTexture, NULL, NULL, &_titleWidth, &_titleHeight);
+    SDL_QueryTexture(_title, NULL, NULL, &_titleWidth, &_titleHeight);
 
-    SDL_QueryTexture(_gameOverTextTexture, NULL, NULL, &_gameOverTextWidth,
+    SDL_QueryTexture(_gameOverText, NULL, NULL, &_gameOverTextWidth,
                      &_gameOverTextHeight);
 
     _gameOverViewHeight = _GAME_OVER_TEXT_MARGIN;
     _gameOverViewHeight += _gameOverTextHeight;
     _gameOverViewHeight += _GAME_OVER_TEXT_MARGIN;
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
-    _gameOverViewHeight += gfx::textureHeight(_tryAgainTextTexture);
+    _gameOverViewHeight += gfx::textureHeight(_tryAgainText);
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
     _gameOverViewHeight += _MENU_BTN_MARGIN_PIXELS;
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
-    _gameOverViewHeight += gfx::textureHeight(_backToMainMenuTextTexture);
+    _gameOverViewHeight += gfx::textureHeight(_backToMainText);
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
 }
 
@@ -229,22 +227,17 @@ void _updateMainMenu()
 
     int playBtnYPosition = titleRect.y + titleRect.h + _TITLE_MARGINS_PIXELS;
 
-    SDL_Rect playBtnRect =
-        _computeMenuButtonRect(_playBtnTextTexture, playBtnYPosition);
+    SDL_Rect playBtnRect = _btnRect(_playText, playBtnYPosition);
 
     int infoBtnYPosition =
         playBtnRect.y + playBtnRect.h + _MENU_BTN_MARGIN_PIXELS;
 
-    SDL_Rect infoBtnRect =
-        _computeMenuButtonRect(_infoBtnTextTexture, infoBtnYPosition);
+    SDL_Rect infoBtnRect = _btnRect(_infoText, infoBtnYPosition);
 
-    gfx::renderTexture(_titleTexture, &titleRect);
+    gfx::renderTexture(_title, &titleRect);
 
-    _renderMenuButton(&playBtnRect, _playBtnTextTexture,
-                      _playBtnTextHoverTexture);
-
-    _renderMenuButton(&infoBtnRect, _infoBtnTextTexture,
-                      _infoBtnTextHoverTexture);
+    _renderMenuButton(&playBtnRect, _playText, _playHoverText);
+    _renderMenuButton(&infoBtnRect, _infoText, _infoHoverText);
 
     bool playBtnHovering = gfx::mouseInRect(&playBtnRect);
     bool infoBtnHovering = gfx::mouseInRect(&infoBtnRect);
@@ -278,25 +271,22 @@ void _updateGameOver()
     int tryAgainBtnYPosition =
         gameOverTextRect.y + gameOverTextRect.h + _GAME_OVER_TEXT_MARGIN;
 
-    SDL_Rect tryAgainBtnRect =
-        _computeMenuButtonRect(_tryAgainTextTexture, tryAgainBtnYPosition);
+    SDL_Rect tryAgainBtnRect = _btnRect(_tryAgainText, tryAgainBtnYPosition);
 
     int backToMainMenuBtnYPosition =
         tryAgainBtnRect.y + tryAgainBtnRect.h + _MENU_BTN_MARGIN_PIXELS;
 
-    SDL_Rect backToMainMenuBtnRect = _computeMenuButtonRect(
-        _backToMainMenuTextTexture, backToMainMenuBtnYPosition);
+    SDL_Rect backBtnRect =
+        _btnRect(_backToMainText, backToMainMenuBtnYPosition);
 
-    gfx::renderTexture(_gameOverTextTexture, &gameOverTextRect);
+    gfx::renderTexture(_gameOverText, &gameOverTextRect);
 
-    _renderMenuButton(&tryAgainBtnRect, _tryAgainTextTexture,
-                      _tryAgainTextHoverTexture);
+    _renderMenuButton(&tryAgainBtnRect, _tryAgainText, _tryAgainHoverText);
 
-    _renderMenuButton(&backToMainMenuBtnRect, _backToMainMenuTextTexture,
-                      _backToMainMenuTextHoverTexture);
+    _renderMenuButton(&backBtnRect, _backToMainText, _backToMainHoverText);
 
     bool tryAgainBtnHovering = gfx::mouseInRect(&tryAgainBtnRect);
-    bool backToMainMenuBtnHovering = gfx::mouseInRect(&backToMainMenuBtnRect);
+    bool backToMainMenuBtnHovering = gfx::mouseInRect(&backBtnRect);
 
     _hoveringOverUIButton = tryAgainBtnHovering || backToMainMenuBtnHovering;
 
