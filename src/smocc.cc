@@ -12,6 +12,7 @@ Public License 3.0.
 #include <SDL.h>
 #include <iostream>
 
+#include "bullets.h"
 #include "enemies.h"
 #include "game.h"
 #include "player.h"
@@ -72,6 +73,7 @@ void _init(int argc, char* argv[])
     smocc::game::init();
     smocc::player::init();
     smocc::enemies::init();
+    smocc::bullets::init();
 }
 
 void _event(SDL_Event* e)
@@ -99,6 +101,7 @@ void _update()
     smocc::game::update();
     smocc::player::update();
     smocc::enemies::update();
+    smocc::bullets::update();
 
     SDL_RenderPresent(_renderer);
     SDL_Delay(_GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);

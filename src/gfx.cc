@@ -81,6 +81,16 @@ bool pointInRect(double x, double y, double rx, double ry, double rw, double rh)
     return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
 
+bool pointOnScreen(double x, double y)
+{
+    SDL_Window* window = smocc::getWindow();
+    int w, h;
+
+    SDL_GetWindowSize(window, &w, &h);
+
+    return pointInRect(x, y, 0, 0, w, h);
+}
+
 bool mouseInRect(SDL_Rect* rect)
 {
     int mouseX, mouseY;
@@ -98,6 +108,15 @@ bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
     double distance = sqrt(dx * dx + dy * dy);
 
     return distance < r1 + r2;
+}
+
+bool pointInCircle(double x, double y, double cx, double cy, double r)
+{
+    double dx = x - cx;
+    double dy = y - cy;
+    double distance = sqrt(dx * dx + dy * dy);
+
+    return distance < r;
 }
 
 void direction(double originX, double originY, double targetX, double targetY,

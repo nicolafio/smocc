@@ -12,6 +12,7 @@ Public License 3.0.
 #include <SDL.h>
 #include <iostream>
 
+#include "bullets.h"
 #include "colors.h"
 #include "game.h"
 #include "gfx.h"
@@ -25,11 +26,14 @@ namespace smocc::player
 {
 
 const double _PLAYER_SPEED = 0.3;
+const int _BULLETS_SPAWN_DELAY_MILLISECONDS = 70;
+
 SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
 
 bool _spawned;
 double _xPosition;
 double _yPosition;
+int _bulletsSpawnCooldown;
 
 void init()
 {
@@ -48,6 +52,8 @@ void spawn()
 
     _xPosition = w / 2;
     _yPosition = h / 2;
+
+    _bulletsSpawnCooldown = _BULLETS_SPAWN_DELAY_MILLISECONDS;
 }
 
 void update()
@@ -101,6 +107,24 @@ void update()
     if (_xPosition > maxX) _xPosition = maxX;
     if (_yPosition < minY) _yPosition = minY;
     if (_yPosition > maxY) _yPosition = maxY;
+
+    double xDirection;
+    double yDirection;
+    int xMouse;
+    int yMouse;
+
+    SDL_GetMouseState(&xMouse, &yMouse);
+
+    gfx::direction(_xPosition, _yPosition, xMouse, yMouse, &xDirection,
+                   &yDirection);
+
+    _bulletsSpawnCooldown -= deltaTimeMilliseconds;
+
+    if (_bulletsSpawnCooldown < 0)
+    {
+        _bulletsSpawnCooldown += _BULLETS_SPAWN_DELAY_MILLISECONDS;
+        bullets::spawn(_xPosition, _yPosition, xDirection, yDirection);
+    }
 
     gfx::setDrawColor(&_PLAYER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);

@@ -23,6 +23,9 @@ obj/player.o: obj/
 obj/enemies.o: obj/
 	g++ -o obj/enemies.o -c src/enemies.cc $(flags)
 
+obj/bullets.o: obj/
+	g++ -o obj/bullets.o -c src/bullets.cc $(flags)
+
 obj/:
 	mkdir -p obj
 

@@ -23,11 +23,14 @@ SDL_Cursor* systemCursor(SDL_SystemCursor cursor);
 bool pointInRect(double x, double y, SDL_Rect* rect);
 bool pointInRect(double x, double y, double rectX, double rectY, double rectW,
                  double rectH);
+bool pointOnScreen(double x, double y);
 
 bool mouseInRect(SDL_Rect* rect);
 
 bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
                     double r2);
+
+bool pointInCircle(double x, double y, double cx, double cy, double r);
 
 void direction(double originX, double originY, double targetX, double targetY,
                double* directionX, double* directionY);

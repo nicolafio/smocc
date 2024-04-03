@@ -16,6 +16,7 @@ Public License 3.0.
 
 #include <SDL.h>
 
+#include "bullets.h"
 #include "colors.h"
 #include "enemies.h"
 #include "game.h"
@@ -303,6 +304,28 @@ void update()
         enemy.x += enemy.xSpeed * deltaTimeMilliseconds;
         enemy.y += enemy.ySpeed * deltaTimeMilliseconds;
     }
+
+    bullets::forEach(
+        [&](const bullets::Bullet& bullet)
+        {
+            for (auto& [_, enemy] : _pool)
+            {
+                double ex = enemy.x;
+                double ey = enemy.y;
+                double er = enemy.radius;
+
+                double bx = bullet.xTip;
+                double by = bullet.yTip;
+
+                bool collision = gfx::pointInCircle(bx, by, ex, ey, er);
+
+                if (collision)
+                {
+                    enemy.health -= bullets::BULLET_DAMAGE;
+                    bullets::despawn(bullet.id);
+                }
+            }
+        });
 
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
     gfx::setDrawColor(&_ENEMY_COLOR);
