@@ -30,18 +30,18 @@ using namespace smocc;
 namespace smocc::enemies
 {
 
-const int SPAWN_DELAY_MILLISECONDS = 500;
-const double MIN_ENEMY_HEALTH = 1.0;
-const double MAX_ENEMY_HEALTH = 30.0;
-const double MIN_ENEMY_SPEED = 0.2;
-const double MAX_ENEMY_SPEED = 0.5;
-const int MIN_ENEMY_COUNT = 10;
-const int MAX_ENEMY_COUNT = 20;
-const double MIN_ENEMY_RADIUS = 15.0;
-const double MAX_ENEMY_RADIUS = 75.0;
-const double ENEMY_RADIUS_CHANGE_SPEED = 0.1;
+const int _SPAWN_DELAY_MILLISECONDS = 500;
+const double _MIN_ENEMY_HEALTH = 1.0;
+const double _MAX_ENEMY_HEALTH = 30.0;
+const double _MIN_ENEMY_SPEED = 0.2;
+const double _MAX_ENEMY_SPEED = 0.5;
+const int _MIN_ENEMY_COUNT = 10;
+const int _MAX_ENEMY_COUNT = 20;
+const double _MIN_ENEMY_RADIUS = 15.0;
+const double _MAX_ENEMY_RADIUS = 75.0;
+const double _ENEMY_RADIUS_CHANGE_SPEED = 0.1;
 
-SDL_Color enemyColor = SMOCC_FOREGROUND_COLOR;
+SDL_Color _ENEMY_COLOR = SMOCC_FOREGROUND_COLOR;
 
 int _maxEnemies;
 unsigned long long _spawnRollsDone;
@@ -114,14 +114,14 @@ void _spawnEnemy()
 
     double healthRoll = _rng(_gen);
     double difficulty = game::getDifficulty();
-    const double healthRange = MAX_ENEMY_HEALTH - MIN_ENEMY_HEALTH;
+    const double healthRange = _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
     int healthAddendum = round(healthRange * healthRoll * difficulty);
 
-    enemy.health = MIN_ENEMY_HEALTH + healthAddendum;
+    enemy.health = _MIN_ENEMY_HEALTH + healthAddendum;
 
     double speedRoll = _rng(_gen);
-    const double speedRange = MAX_ENEMY_SPEED - MIN_ENEMY_SPEED;
-    double speed = MIN_ENEMY_SPEED + speedRange * speedRoll;
+    const double speedRange = _MAX_ENEMY_SPEED - _MIN_ENEMY_SPEED;
+    double speed = _MIN_ENEMY_SPEED + speedRange * speedRoll;
 
     double rotationRoll = _rng(_gen);
     double rotationRadians = M_PI * rotationRoll;
@@ -152,12 +152,12 @@ void _rollEnemySpawn()
 {
     int enemiesCount = _pool.size();
 
-    if (enemiesCount < MIN_ENEMY_COUNT)
+    if (enemiesCount < _MIN_ENEMY_COUNT)
     {
         _spawnEnemy();
     }
 
-    if (enemiesCount >= MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
+    if (enemiesCount >= _MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
     {
         double spawnChance = game::getDifficulty();
         double roll = _rng(_gen);
@@ -182,7 +182,7 @@ void _reset()
 unsigned long long _getSpawnRollsToDo()
 {
     unsigned long long millisecondsElapsed = game::getTimeElapsedMilliseconds();
-    unsigned long long target = millisecondsElapsed / SPAWN_DELAY_MILLISECONDS;
+    unsigned long long target = millisecondsElapsed / _SPAWN_DELAY_MILLISECONDS;
     return target - _spawnRollsDone;
 }
 
@@ -208,7 +208,7 @@ void update()
 
     double difficulty = game::getDifficulty();
 
-    _maxEnemies = MAX_ENEMY_COUNT * difficulty;
+    _maxEnemies = _MAX_ENEMY_COUNT * difficulty;
 
     _doNecessarySpawnRolls();
 
@@ -243,11 +243,11 @@ void update()
     {
         Enemy& enemy = _pool[id];
 
-        const double radiusRange = MAX_ENEMY_RADIUS - MIN_ENEMY_RADIUS;
-        double radiusFactor = enemy.health / MAX_ENEMY_HEALTH;
-        double targetRadius = MIN_ENEMY_RADIUS + radiusRange * radiusFactor;
+        const double radiusRange = _MAX_ENEMY_RADIUS - _MIN_ENEMY_RADIUS;
+        double radiusFactor = enemy.health / _MAX_ENEMY_HEALTH;
+        double targetRadius = _MIN_ENEMY_RADIUS + radiusRange * radiusFactor;
         double radiusChange =
-            ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTimeMilliseconds;
+            _ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTimeMilliseconds;
 
         if (enemy.radius < targetRadius)
         {
@@ -312,7 +312,7 @@ void update()
     }
 
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
-    gfx::setDrawColor(&enemyColor);
+    gfx::setDrawColor(&_ENEMY_COLOR);
 
     for (auto& [_, enemy] : _pool)
     {
