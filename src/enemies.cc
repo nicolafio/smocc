@@ -46,7 +46,6 @@ SDL_Color _ENEMY_COLOR = SMOCC_FOREGROUND_COLOR;
 int _maxEnemies;
 unsigned long long _spawnRollsDone;
 bool _resetDone;
-int _lastUpdateTimeMilliseconds;
 
 struct Enemy
 {
@@ -173,7 +172,6 @@ void _reset()
     _pool.clear();
     _maxEnemies = 0;
     _spawnRollsDone = 0;
-    _lastUpdateTimeMilliseconds = -1;
     _nextID = 0;
 
     _resetDone = true;
@@ -220,15 +218,7 @@ void update()
 
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    Uint64 now = SDL_GetTicks64();
-    Uint64 deltaTimeMilliseconds = 0;
-
-    if (_lastUpdateTimeMilliseconds != -1)
-    {
-        deltaTimeMilliseconds = now - _lastUpdateTimeMilliseconds;
-    }
-
-    _lastUpdateTimeMilliseconds = now;
+    unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
 
     vector<Enemy> toRemove;
 

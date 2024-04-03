@@ -22,5 +22,6 @@ bool isRunning();
 int getScore();
 double getDifficulty();
 unsigned long long getTimeElapsedMilliseconds();
+unsigned int getDeltaTimeMilliseconds();
 
 } // namespace smocc::game

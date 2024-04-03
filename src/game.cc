@@ -29,6 +29,8 @@ bool _gameRunning;
 int _score;
 double _difficulty;
 unsigned long long _gameStartTimeMilliseconds;
+unsigned long long _lastUpdateTimeMilliseconds;
+unsigned int _deltaTime;
 
 void init()
 {
@@ -40,6 +42,8 @@ void begin()
     cout << "Game start!" << endl;
     _gameRunning = true;
     _gameStartTimeMilliseconds = SDL_GetTicks64();
+    _lastUpdateTimeMilliseconds = _gameStartTimeMilliseconds;
+    _deltaTime = 0;
 
     _score = 0;
 
@@ -52,6 +56,11 @@ void update()
     {
         return;
     }
+
+    unsigned long long currentTime = SDL_GetTicks64();
+
+    _deltaTime = currentTime - _lastUpdateTimeMilliseconds;
+    _lastUpdateTimeMilliseconds = currentTime;
 
     double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 30));
 
@@ -81,6 +90,11 @@ double getDifficulty()
 unsigned long long getTimeElapsedMilliseconds()
 {
     return SDL_GetTicks64() - _gameStartTimeMilliseconds;
+}
+
+unsigned int getDeltaTimeMilliseconds()
+{
+    return _deltaTime;
 }
 
 } // namespace smocc::game

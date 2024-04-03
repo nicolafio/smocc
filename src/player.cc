@@ -30,7 +30,6 @@ SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
 bool _spawned;
 double _xPosition;
 double _yPosition;
-Uint64 _lastUpdateTimeMilliseconds;
 
 void init()
 {
@@ -49,8 +48,6 @@ void spawn()
 
     _xPosition = w / 2;
     _yPosition = h / 2;
-
-    _lastUpdateTimeMilliseconds = -1;
 }
 
 void update()
@@ -66,13 +63,7 @@ void update()
         return;
     }
 
-    Uint64 now = SDL_GetTicks64();
-    Uint64 deltaTimeMilliseconds = 0;
-
-    if (_lastUpdateTimeMilliseconds != -1)
-    {
-        deltaTimeMilliseconds = now - _lastUpdateTimeMilliseconds;
-    }
+    unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
 
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
@@ -110,8 +101,6 @@ void update()
     if (_xPosition > maxX) _xPosition = maxX;
     if (_yPosition < minY) _yPosition = minY;
     if (_yPosition > maxY) _yPosition = maxY;
-
-    _lastUpdateTimeMilliseconds = now;
 
     gfx::setDrawColor(&_PLAYER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
