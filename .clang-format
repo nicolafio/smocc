@@ -7,3 +7,4 @@ BraceWrapping:
 AllowShortIfStatementsOnASingleLine: true
 ColumnLimit: 80
 PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: None

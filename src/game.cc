@@ -30,7 +30,10 @@ int _score;
 double _difficulty;
 unsigned long long _gameStartTimeMilliseconds;
 
-void init() { _gameRunning = false; }
+void init()
+{
+    _gameRunning = false;
+}
 
 void begin()
 {
@@ -55,13 +58,25 @@ void update()
     _difficulty = _MIN_DIFFICULTY + _DIFFICULTY_RANGE * difficultyFactor;
 }
 
-void end() { _gameRunning = false; }
+void end()
+{
+    _gameRunning = false;
+}
 
-bool isRunning() { return _gameRunning; }
+bool isRunning()
+{
+    return _gameRunning;
+}
 
-int getScore() { return _score; }
+int getScore()
+{
+    return _score;
+}
 
-double getDifficulty() { return _difficulty; }
+double getDifficulty()
+{
+    return _difficulty;
+}
 
 unsigned long long getTimeElapsedMilliseconds()
 {

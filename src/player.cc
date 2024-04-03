@@ -32,7 +32,10 @@ double _xPosition;
 double _yPosition;
 Uint64 _lastUpdateTimeMilliseconds;
 
-void init() { _spawned = false; }
+void init()
+{
+    _spawned = false;
+}
 
 void spawn()
 {
@@ -115,8 +118,14 @@ void update()
     gfx::fillCircle(_xPosition, _yPosition, PLAYER_CIRCLE_RADIUS);
 }
 
-double getXPosition() { return _xPosition; }
+double getXPosition()
+{
+    return _xPosition;
+}
 
-double getYPosition() { return _yPosition; }
+double getYPosition()
+{
+    return _yPosition;
+}
 
 } // namespace smocc::player

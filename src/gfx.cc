@@ -184,7 +184,10 @@ int textureHeight(SDL_Texture* texture)
     return height;
 }
 
-void setDrawColor(SDL_Color* c) { setDrawColor(c->r, c->g, c->b, c->a); }
+void setDrawColor(SDL_Color* c)
+{
+    setDrawColor(c->r, c->g, c->b, c->a);
+}
 
 void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {

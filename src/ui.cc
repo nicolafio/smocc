@@ -213,7 +213,10 @@ void update()
     SDL_SetCursor(_hoveringOverUIButton ? _handCursor : _arrowCursor);
 }
 
-void showGameOver() { _gameOverVisible = true; }
+void showGameOver()
+{
+    _gameOverVisible = true;
+}
 
 void _updateMainMenu()
 {

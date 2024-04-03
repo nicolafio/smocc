@@ -194,7 +194,10 @@ void _doNecessarySpawnRolls()
         _rollEnemySpawn();
 }
 
-void init() { _reset(); }
+void init()
+{
+    _reset();
+}
 
 void update()
 {

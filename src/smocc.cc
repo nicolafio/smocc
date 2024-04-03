@@ -20,7 +20,10 @@ Public License 3.0.
 
 using namespace std;
 
-int main(int argc, char* argv[]) { return smocc::main(argc, argv); }
+int main(int argc, char* argv[])
+{
+    return smocc::main(argc, argv);
+}
 
 namespace smocc
 {
@@ -101,8 +104,14 @@ void _update()
     SDL_Delay(_GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
 }
 
-SDL_Window* getWindow() { return _window; }
+SDL_Window* getWindow()
+{
+    return _window;
+}
 
-SDL_Renderer* getRenderer() { return _renderer; }
+SDL_Renderer* getRenderer()
+{
+    return _renderer;
+}
 
 } // namespace smocc
