@@ -20,8 +20,10 @@ namespace smocc::gfx
 
 SDL_Cursor* systemCursor(SDL_SystemCursor cursor);
 
-bool pointInRect(int x, int y, SDL_Rect* rect);
-bool pointInRect(int x, int y, int rectX, int rectY, int rectW, int rectH);
+bool pointInRect(double x, double y, SDL_Rect* rect);
+bool pointInRect(double x, double y, double rectX, double rectY, double rectW,
+                 double rectH);
+
 bool mouseInRect(SDL_Rect* rect);
 
 bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,

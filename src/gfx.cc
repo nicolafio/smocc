@@ -71,12 +71,12 @@ SDL_Cursor* systemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
-bool pointInRect(int x, int y, SDL_Rect* rect)
+bool pointInRect(double x, double y, SDL_Rect* rect)
 {
     return pointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
 }
 
-bool pointInRect(int x, int y, int rx, int ry, int rw, int rh)
+bool pointInRect(double x, double y, double rx, double ry, double rw, double rh)
 {
     return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
