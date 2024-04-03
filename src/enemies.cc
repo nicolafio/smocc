@@ -218,6 +218,8 @@ void update()
     SDL_Window* window = smocc::getWindow();
     int windowWidth, windowHeight;
 
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
     Uint64 now = SDL_GetTicks64();
     Uint64 deltaTimeMilliseconds = 0;
 
@@ -227,8 +229,6 @@ void update()
     }
 
     _lastUpdateTimeMilliseconds = now;
-
-    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
     vector<Enemy> toRemove;
 
