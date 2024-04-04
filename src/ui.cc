@@ -44,7 +44,7 @@ const int _MENU_BTN_PADDING_PIXELS = 15;
 const int _MENU_BTN_MARGIN_PIXELS = 6;
 const int _MENU_BTN_BORDER_OPACITY = 25;
 
-const int _GAME_OVER_TEXT_MARGIN = 20;
+const int _GAME_OVER_TEXT_MARGIN_PIXELS = 20;
 
 const char* _PLAY_TEXT = "Play";
 const char* _INFO_TEXT = "Info";
@@ -176,9 +176,9 @@ void init(int argc, char* argv[])
     SDL_QueryTexture(_gameOverText, NULL, NULL, &_gameOverTextWidth,
                      &_gameOverTextHeight);
 
-    _gameOverViewHeight = _GAME_OVER_TEXT_MARGIN;
+    _gameOverViewHeight = _GAME_OVER_TEXT_MARGIN_PIXELS;
     _gameOverViewHeight += _gameOverTextHeight;
-    _gameOverViewHeight += _GAME_OVER_TEXT_MARGIN;
+    _gameOverViewHeight += _GAME_OVER_TEXT_MARGIN_PIXELS;
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
     _gameOverViewHeight += gfx::textureHeight(_tryAgainText);
     _gameOverViewHeight += _MENU_BTN_PADDING_PIXELS;
@@ -269,10 +269,10 @@ void _updateGameOver()
     gameOverTextRect.w = _gameOverTextWidth;
     gameOverTextRect.h = _gameOverTextHeight;
     gameOverTextRect.x = _uiRect.x + (_uiRect.w - gameOverTextRect.w) / 2;
-    gameOverTextRect.y = gameOverViewRect.y + _GAME_OVER_TEXT_MARGIN;
+    gameOverTextRect.y = gameOverViewRect.y + _GAME_OVER_TEXT_MARGIN_PIXELS;
 
     int tryAgainBtnYPosition =
-        gameOverTextRect.y + gameOverTextRect.h + _GAME_OVER_TEXT_MARGIN;
+        gameOverTextRect.y + gameOverTextRect.h + _GAME_OVER_TEXT_MARGIN_PIXELS;
 
     SDL_Rect tryAgainBtnRect = _btnRect(_tryAgainText, tryAgainBtnYPosition);
 
