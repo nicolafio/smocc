@@ -46,6 +46,11 @@ const int _MENU_BTN_BORDER_OPACITY = 25;
 
 const int _GAME_OVER_TEXT_MARGIN_PIXELS = 20;
 
+const int _SCORE_RECORD_TEXT_MARGIN_PIXELS = 20;
+
+const char* _SCORE_TEXT = "Score: ";
+const char* _RECORD_TEXT = "Record: ";
+
 const char* _PLAY_TEXT = "Play";
 const char* _INFO_TEXT = "Info";
 
@@ -76,6 +81,10 @@ SDL_Texture* _playHoverText;
 SDL_Texture* _infoText;
 SDL_Texture* _infoHoverText;
 
+SDL_Texture* _scoreText;
+SDL_Texture* _recordText;
+SDL_Texture* _scoreNumber;
+SDL_Texture* _recordNumber;
 SDL_Texture* _gameOverText;
 SDL_Texture* _tryAgainText;
 SDL_Texture* _tryAgainHoverText;
@@ -88,11 +97,16 @@ int _titleWidth, _titleHeight;
 int _gameOverViewHeight;
 int _gameOverTextWidth, _gameOverTextHeight;
 
+bool _scoreVisible;
 bool _mainMenuVisible;
 bool _gameOverVisible;
 bool _hoveringOverUIButton;
 bool _pressingLeftMouseButton;
 
+int _lastScore;
+int _lastRecord;
+
+void _updateScoreAndRecord();
 void _updateMainMenu();
 void _updateGameOver();
 
@@ -140,9 +154,12 @@ void init(int argc, char* argv[])
 {
     _arrowCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_ARROW);
     _handCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_HAND);
+    _scoreVisible = false;
     _mainMenuVisible = true;
     _gameOverVisible = false;
     _hoveringOverUIButton = false;
+    _lastScore = 0;
+    _lastRecord = 0;
 
     if (TTF_Init())
     {
@@ -158,6 +175,11 @@ void init(int argc, char* argv[])
     _font = gfx::font(fontPath, _BODY_FONT_SIZE_PIXELS);
     _boldFont = gfx::font(boldFontPath, _BODY_FONT_SIZE_PIXELS);
     _titleFont = gfx::font(boldFontPath, _TITLE_FONT_SIZE_PIXELS);
+
+    _scoreText = gfx::text(_font, _SCORE_TEXT, _FG_COLOR);
+    _recordText = gfx::text(_font, _RECORD_TEXT, _FG_COLOR);
+    _scoreNumber = NULL;
+    _recordNumber = NULL;
 
     _title = gfx::text(_titleFont, _TITLE, _FG_COLOR);
     _playText = gfx::text(_font, _PLAY_TEXT, _FG_COLOR);
@@ -190,6 +212,8 @@ void init(int argc, char* argv[])
 
 void update()
 {
+    _scoreVisible = game::isRunning() || _gameOverVisible;
+
     SDL_Window* window = smocc::getWindow();
 
     SDL_Rect windowRect;
@@ -207,6 +231,7 @@ void update()
 
     _pressingLeftMouseButton = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
 
+    _updateScoreAndRecord();
     _updateMainMenu();
     _updateGameOver();
 
@@ -216,6 +241,67 @@ void update()
 void showGameOver()
 {
     _gameOverVisible = true;
+}
+
+void _updateScoreAndRecord()
+{
+    if (!_scoreVisible) return;
+
+    unsigned int score = game::getScore();
+    unsigned int record = game::getRecord();
+
+    bool scoreChanged = _lastScore != score;
+    bool recordChanged = _lastRecord != record;
+
+    bool scoreNeedsUpdate = scoreChanged || _scoreNumber == NULL;
+    bool recordNeedsUpdate = recordChanged || _recordNumber == NULL;
+
+    _lastScore = score;
+    _lastRecord = record;
+
+    if (scoreNeedsUpdate)
+    {
+        if (_scoreNumber != NULL) SDL_DestroyTexture(_scoreNumber);
+        _scoreNumber = gfx::text(_font, to_string(score).c_str(), _FG_COLOR);
+    }
+
+    if (recordNeedsUpdate)
+    {
+        if (_recordNumber != NULL) SDL_DestroyTexture(_recordNumber);
+        _recordNumber = gfx::text(_font, to_string(record).c_str(), _FG_COLOR);
+    }
+
+    int scoreTextWidth = gfx::textureWidth(_scoreText);
+    int recordTextWidth = gfx::textureWidth(_recordText);
+    int scoreNumberWidth = gfx::textureWidth(_scoreNumber);
+    int recordNumberWidth = gfx::textureWidth(_recordNumber);
+
+    int scoreAndRecordWidth = 0;
+    scoreAndRecordWidth += scoreTextWidth + scoreNumberWidth;
+    scoreAndRecordWidth += _SCORE_RECORD_TEXT_MARGIN_PIXELS;
+    scoreAndRecordWidth += recordTextWidth + recordNumberWidth;
+
+    SDL_Rect scoreTextRect = gfx::textureSize(_scoreText);
+    scoreTextRect.x = _uiRect.x + (_uiRect.w - scoreAndRecordWidth) / 2;
+    scoreTextRect.y = _uiRect.y;
+
+    SDL_Rect scoreNumberRect = gfx::textureSize(_scoreNumber);
+    scoreNumberRect.x = scoreTextRect.x + scoreTextRect.w;
+    scoreNumberRect.y = _uiRect.y;
+
+    SDL_Rect recordTextRect = gfx::textureSize(_recordText);
+    recordTextRect.x = scoreNumberRect.x + scoreNumberRect.w +
+                       _SCORE_RECORD_TEXT_MARGIN_PIXELS;
+    recordTextRect.y = _uiRect.y;
+
+    SDL_Rect recordNumberRect = gfx::textureSize(_recordNumber);
+    recordNumberRect.x = recordTextRect.x + recordTextRect.w;
+    recordNumberRect.y = _uiRect.y;
+
+    gfx::renderTexture(_scoreText, &scoreTextRect);
+    gfx::renderTexture(_scoreNumber, &scoreNumberRect);
+    gfx::renderTexture(_recordText, &recordTextRect);
+    gfx::renderTexture(_recordNumber, &recordNumberRect);
 }
 
 void _updateMainMenu()

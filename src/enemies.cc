@@ -231,6 +231,7 @@ void update()
     for (Enemy& enemy : toRemove)
     {
         _pool.erase(enemy.id);
+        game::incrementScore();
     }
 
     for (auto& [id, _] : _pool)

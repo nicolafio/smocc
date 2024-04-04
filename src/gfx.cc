@@ -190,6 +190,19 @@ SDL_Rect textureSize(SDL_Texture* texture)
     return size;
 }
 
+int textureWidth(SDL_Texture* texture)
+{
+    int width;
+
+    if (SDL_QueryTexture(texture, NULL, NULL, &width, NULL))
+    {
+        cerr << "Failed to query texture width: " << SDL_GetError() << endl;
+        exit(1);
+    }
+
+    return width;
+}
+
 int textureHeight(SDL_Texture* texture)
 {
     int height;

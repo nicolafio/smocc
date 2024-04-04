@@ -40,6 +40,7 @@ TTF_Font* font(std::filesystem::path& fontPath, int size);
 SDL_Texture* text(TTF_Font* font, char const* text, SDL_Color color);
 
 SDL_Rect textureSize(SDL_Texture* texture);
+int textureWidth(SDL_Texture* texture);
 int textureHeight(SDL_Texture* texture);
 
 void setDrawColor(SDL_Color* color);

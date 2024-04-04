@@ -24,9 +24,11 @@ namespace smocc::game
 const double _MIN_DIFFICULTY = 0.1;
 const double _MAX_DIFFICULTY = 1.0;
 const double _DIFFICULTY_RANGE = _MAX_DIFFICULTY - _MIN_DIFFICULTY;
+const int _SCORE_INCREMENT = 100;
 
 bool _gameRunning;
-int _score;
+unsigned int _score;
+unsigned int _record;
 double _difficulty;
 unsigned long long _gameStartTimeMilliseconds;
 unsigned long long _lastUpdateTimeMilliseconds;
@@ -35,6 +37,7 @@ unsigned int _deltaTime;
 void init()
 {
     _gameRunning = false;
+    _record = 0;
 }
 
 void begin()
@@ -57,6 +60,11 @@ void update()
         return;
     }
 
+    if (_score > _record)
+    {
+        _record = _score;
+    }
+
     unsigned long long currentTime = SDL_GetTicks64();
 
     _deltaTime = currentTime - _lastUpdateTimeMilliseconds;
@@ -77,9 +85,19 @@ bool isRunning()
     return _gameRunning;
 }
 
-int getScore()
+unsigned int getScore()
 {
     return _score;
+}
+
+void incrementScore()
+{
+    _score += _SCORE_INCREMENT;
+}
+
+unsigned int getRecord()
+{
+    return _record;
 }
 
 double getDifficulty()
