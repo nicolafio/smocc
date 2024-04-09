@@ -70,7 +70,7 @@ void update()
     _deltaTime = currentTime - _lastUpdateTimeMilliseconds;
     _lastUpdateTimeMilliseconds = currentTime;
 
-    double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 30));
+    double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 3000.0));
 
     _difficulty = _MIN_DIFFICULTY + _DIFFICULTY_RANGE * difficultyFactor;
 }
