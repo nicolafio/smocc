@@ -13,6 +13,7 @@ Public License 3.0.
 #include <iostream>
 #include <random>
 #include <unordered_map>
+#include <utility>
 
 #include <SDL.h>
 
@@ -189,6 +190,8 @@ void update()
     bullets::forEach(
         [&](const bullets::Bullet& bullet)
         {
+            if (bullet.despawning) return;
+
             for (auto& [_, enemy] : _pool)
             {
                 double ex = enemy.x;
@@ -204,6 +207,8 @@ void update()
                 {
                     enemy.health -= bullets::BULLET_DAMAGE;
                     bullets::despawn(bullet.id);
+
+                    return;
                 }
             }
         });

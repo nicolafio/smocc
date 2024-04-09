@@ -30,6 +30,8 @@ struct Bullet
     double yDirection;
     double xSpeed;
     double ySpeed;
+
+    bool despawning;
 };
 
 void init();

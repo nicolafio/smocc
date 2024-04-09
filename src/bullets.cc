@@ -82,6 +82,7 @@ void spawn(double x, double y, double xDirection, double yDirection)
     assert(abs(xDirection * xDirection + yDirection * yDirection - 1.0) < 0.01);
 
     Bullet bullet;
+    bullet.id = _nextID++;
     bullet.xBase = x;
     bullet.yBase = y;
     bullet.xTip = x + xDirection * _BULLET_LENGTH;
@@ -90,12 +91,14 @@ void spawn(double x, double y, double xDirection, double yDirection)
     bullet.yDirection = yDirection;
     bullet.xSpeed = xDirection * _BULLET_SPEED;
     bullet.ySpeed = yDirection * _BULLET_SPEED;
+    bullet.despawning = false;
 
-    _pool[_nextID++] = bullet;
+    _pool[bullet.id] = bullet;
 }
 
 void despawn(unsigned long long id)
 {
+    _pool[id].despawning = true;
     _toDespawn.insert(id);
 }
 
