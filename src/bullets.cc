@@ -39,38 +39,12 @@ unordered_set<unsigned long long> _toDespawn;
 unsigned long long _nextID;
 bool _resetDone;
 
-void _reset()
-{
-    _pool.clear();
-    _toDespawn.clear();
-    _nextID = 0;
-
-    _resetDone = true;
-}
+void _reset();
+void _updateBullet(Bullet& bullet);
 
 void init()
 {
     _reset();
-}
-
-void _updateBullet(Bullet& bullet)
-{
-    double deltaTime = game::getDeltaTimeMilliseconds();
-
-    double xChange = bullet.xSpeed * deltaTime;
-    double yChange = bullet.ySpeed * deltaTime;
-
-    bullet.xBase += xChange;
-    bullet.yBase += yChange;
-    bullet.xTip += xChange;
-    bullet.yTip += yChange;
-
-    bool shouldDespawn = !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
-
-    if (shouldDespawn)
-    {
-        _toDespawn.insert(bullet.id);
-    }
 }
 
 void update()
@@ -130,6 +104,35 @@ void forEach(std::function<void(const Bullet& bullet)> callback)
     for (auto& [_, bullet] : _pool)
     {
         callback(bullet);
+    }
+}
+
+void _reset()
+{
+    _pool.clear();
+    _toDespawn.clear();
+    _nextID = 0;
+
+    _resetDone = true;
+}
+
+void _updateBullet(Bullet& bullet)
+{
+    double deltaTime = game::getDeltaTimeMilliseconds();
+
+    double xChange = bullet.xSpeed * deltaTime;
+    double yChange = bullet.ySpeed * deltaTime;
+
+    bullet.xBase += xChange;
+    bullet.yBase += yChange;
+    bullet.xTip += xChange;
+    bullet.yTip += yChange;
+
+    bool shouldDespawn = !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
+
+    if (shouldDespawn)
+    {
+        _toDespawn.insert(bullet.id);
     }
 }
 

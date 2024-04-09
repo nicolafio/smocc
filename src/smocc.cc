@@ -51,6 +51,16 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+SDL_Window* getWindow()
+{
+    return _window;
+}
+
+SDL_Renderer* getRenderer()
+{
+    return _renderer;
+}
+
 void _init(int argc, char* argv[])
 {
     if (SDL_Init(SDL_INIT_VIDEO))
@@ -105,16 +115,6 @@ void _update()
 
     SDL_RenderPresent(_renderer);
     SDL_Delay(_GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS);
-}
-
-SDL_Window* getWindow()
-{
-    return _window;
-}
-
-SDL_Renderer* getRenderer()
-{
-    return _renderer;
 }
 
 } // namespace smocc

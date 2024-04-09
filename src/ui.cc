@@ -110,45 +110,8 @@ void _updateScoreAndRecord();
 void _updateMainMenu();
 void _updateGameOver();
 
-SDL_Rect _btnRect(SDL_Texture* textTexture, int yPosition)
-{
-    SDL_Rect rect;
-    rect.w = _MENU_BTN_WIDTH_PIXELS;
-    rect.h = gfx::textureHeight(textTexture) + 2 * _MENU_BTN_PADDING_PIXELS;
-    rect.x = _uiRect.x + (_uiRect.w - rect.w) / 2;
-    rect.y = yPosition;
-
-    return rect;
-}
-
-void _renderMenuButton(SDL_Rect* buttonRect, SDL_Texture* textTexture,
-                       SDL_Texture* hoverTextTexture)
-{
-    SDL_Renderer* renderer = smocc::getRenderer();
-
-    bool hover = gfx::mouseInRect(buttonRect);
-
-    SDL_Rect textRect = gfx::textureSize(textTexture);
-
-    textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
-    textRect.y = buttonRect->y + _MENU_BTN_PADDING_PIXELS;
-
-    gfx::setDrawColor(&_BTN_BORDER_COLOR);
-    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
-    gfx::drawRect(buttonRect);
-
-    if (!hover)
-    {
-        gfx::renderTexture(textTexture, &textRect);
-    }
-
-    if (hover)
-    {
-        gfx::setDrawColor(&_FG_COLOR);
-        gfx::fillRect(buttonRect);
-        gfx::renderTexture(hoverTextTexture, &textRect);
-    }
-}
+SDL_Rect _btnRect(SDL_Texture*, int);
+void _renderMenuButton(SDL_Rect*, SDL_Texture*, SDL_Texture*);
 
 void init(int argc, char* argv[])
 {
@@ -395,6 +358,46 @@ void _updateGameOver()
         _gameOverVisible = false;
         _mainMenuVisible = true;
         return;
+    }
+}
+
+SDL_Rect _btnRect(SDL_Texture* textTexture, int yPosition)
+{
+    SDL_Rect rect;
+    rect.w = _MENU_BTN_WIDTH_PIXELS;
+    rect.h = gfx::textureHeight(textTexture) + 2 * _MENU_BTN_PADDING_PIXELS;
+    rect.x = _uiRect.x + (_uiRect.w - rect.w) / 2;
+    rect.y = yPosition;
+
+    return rect;
+}
+
+void _renderMenuButton(SDL_Rect* buttonRect, SDL_Texture* textTexture,
+                       SDL_Texture* hoverTextTexture)
+{
+    SDL_Renderer* renderer = smocc::getRenderer();
+
+    bool hover = gfx::mouseInRect(buttonRect);
+
+    SDL_Rect textRect = gfx::textureSize(textTexture);
+
+    textRect.x = buttonRect->x + (buttonRect->w - textRect.w) / 2;
+    textRect.y = buttonRect->y + _MENU_BTN_PADDING_PIXELS;
+
+    gfx::setDrawColor(&_BTN_BORDER_COLOR);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::drawRect(buttonRect);
+
+    if (!hover)
+    {
+        gfx::renderTexture(textTexture, &textRect);
+    }
+
+    if (hover)
+    {
+        gfx::setDrawColor(&_FG_COLOR);
+        gfx::fillRect(buttonRect);
+        gfx::renderTexture(hoverTextTexture, &textRect);
     }
 }
 

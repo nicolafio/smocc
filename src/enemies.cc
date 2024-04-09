@@ -67,131 +67,11 @@ unsigned long long _nextID;
 
 unordered_map<unsigned long long, Enemy> _pool;
 
-void _spawnEnemy()
-{
-    Enemy enemy;
-
-    enemy.id = _nextID++;
-    enemy.radius = 0;
-
-    double edgeRoll = _rng(_gen);
-
-    bool spawningLeft = edgeRoll <= .25;
-    bool spawningRight = edgeRoll > .25 && edgeRoll <= .5;
-    bool spawningTop = edgeRoll > .5 && edgeRoll <= .75;
-    bool spawningBottom = edgeRoll > .75;
-
-    double locationRoll = _rng(_gen);
-
-    SDL_Window* window = smocc::getWindow();
-    int windowWidth, windowHeight;
-
-    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-
-    if (spawningLeft)
-    {
-        enemy.x = 0;
-        enemy.y = locationRoll * windowHeight;
-    }
-
-    if (spawningRight)
-    {
-        enemy.x = windowWidth;
-        enemy.y = locationRoll * windowHeight;
-    }
-
-    if (spawningTop)
-    {
-        enemy.x = locationRoll * windowWidth;
-        enemy.y = 0;
-    }
-
-    if (spawningBottom)
-    {
-        enemy.x = locationRoll * windowWidth;
-        enemy.y = windowHeight;
-    }
-
-    double healthRoll = _rng(_gen);
-    double difficulty = game::getDifficulty();
-    const double healthRange = _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
-    int healthAddendum = round(healthRange * healthRoll * difficulty);
-
-    enemy.health = _MIN_ENEMY_HEALTH + healthAddendum;
-
-    double speedRoll = _rng(_gen);
-    const double speedRange = _MAX_ENEMY_SPEED - _MIN_ENEMY_SPEED;
-    double speed = _MIN_ENEMY_SPEED + speedRange * speedRoll;
-
-    double rotationRoll = _rng(_gen);
-    double rotationRadians = M_PI * rotationRoll;
-
-    if (spawningLeft)
-    {
-        rotationRadians -= M_PI / 2;
-    }
-
-    if (spawningRight)
-    {
-        rotationRadians += M_PI / 2;
-    }
-
-    if (spawningTop)
-    {
-        rotationRadians += M_PI;
-    }
-
-    enemy.speed = speed;
-    enemy.xSpeed = speed * cos(rotationRadians);
-    enemy.ySpeed = -speed * sin(rotationRadians);
-
-    _pool[enemy.id] = enemy;
-}
-
-void _rollEnemySpawn()
-{
-    int enemiesCount = _pool.size();
-
-    if (enemiesCount < _MIN_ENEMY_COUNT)
-    {
-        _spawnEnemy();
-    }
-
-    if (enemiesCount >= _MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
-    {
-        double spawnChance = game::getDifficulty();
-        double roll = _rng(_gen);
-
-        if (roll < spawnChance) _spawnEnemy();
-    }
-
-    _spawnRollsDone++;
-}
-
-void _reset()
-{
-    _pool.clear();
-    _maxEnemies = 0;
-    _spawnRollsDone = 0;
-    _nextID = 0;
-
-    _resetDone = true;
-}
-
-unsigned long long _getSpawnRollsToDo()
-{
-    unsigned long long millisecondsElapsed = game::getTimeElapsedMilliseconds();
-    unsigned long long target = millisecondsElapsed / _SPAWN_DELAY_MILLISECONDS;
-    return target - _spawnRollsDone;
-}
-
-void _doNecessarySpawnRolls()
-{
-    unsigned long long rollsToDo = _getSpawnRollsToDo();
-
-    for (unsigned long long i = 0; i < rollsToDo; i++)
-        _rollEnemySpawn();
-}
+void _spawnEnemy();
+void _rollEnemySpawn();
+void _reset();
+unsigned long long _getSpawnRollsToDo();
+void _doNecessarySpawnRolls();
 
 void init()
 {
@@ -335,6 +215,132 @@ void update()
     {
         gfx::fillCircle(enemy.x, enemy.y, enemy.radius);
     }
+}
+
+void _reset()
+{
+    _pool.clear();
+    _maxEnemies = 0;
+    _spawnRollsDone = 0;
+    _nextID = 0;
+
+    _resetDone = true;
+}
+
+void _doNecessarySpawnRolls()
+{
+    unsigned long long rollsToDo = _getSpawnRollsToDo();
+
+    for (unsigned long long i = 0; i < rollsToDo; i++)
+        _rollEnemySpawn();
+}
+
+unsigned long long _getSpawnRollsToDo()
+{
+    unsigned long long millisecondsElapsed = game::getTimeElapsedMilliseconds();
+    unsigned long long target = millisecondsElapsed / _SPAWN_DELAY_MILLISECONDS;
+    return target - _spawnRollsDone;
+}
+
+void _rollEnemySpawn()
+{
+    int enemiesCount = _pool.size();
+
+    if (enemiesCount < _MIN_ENEMY_COUNT)
+    {
+        _spawnEnemy();
+    }
+
+    if (enemiesCount >= _MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
+    {
+        double spawnChance = game::getDifficulty();
+        double roll = _rng(_gen);
+
+        if (roll < spawnChance) _spawnEnemy();
+    }
+
+    _spawnRollsDone++;
+}
+
+void _spawnEnemy()
+{
+    Enemy enemy;
+
+    enemy.id = _nextID++;
+    enemy.radius = 0;
+
+    double edgeRoll = _rng(_gen);
+
+    bool spawningLeft = edgeRoll <= .25;
+    bool spawningRight = edgeRoll > .25 && edgeRoll <= .5;
+    bool spawningTop = edgeRoll > .5 && edgeRoll <= .75;
+    bool spawningBottom = edgeRoll > .75;
+
+    double locationRoll = _rng(_gen);
+
+    SDL_Window* window = smocc::getWindow();
+    int windowWidth, windowHeight;
+
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    if (spawningLeft)
+    {
+        enemy.x = 0;
+        enemy.y = locationRoll * windowHeight;
+    }
+
+    if (spawningRight)
+    {
+        enemy.x = windowWidth;
+        enemy.y = locationRoll * windowHeight;
+    }
+
+    if (spawningTop)
+    {
+        enemy.x = locationRoll * windowWidth;
+        enemy.y = 0;
+    }
+
+    if (spawningBottom)
+    {
+        enemy.x = locationRoll * windowWidth;
+        enemy.y = windowHeight;
+    }
+
+    double healthRoll = _rng(_gen);
+    double difficulty = game::getDifficulty();
+    const double healthRange = _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
+    int healthAddendum = round(healthRange * healthRoll * difficulty);
+
+    enemy.health = _MIN_ENEMY_HEALTH + healthAddendum;
+
+    double speedRoll = _rng(_gen);
+    const double speedRange = _MAX_ENEMY_SPEED - _MIN_ENEMY_SPEED;
+    double speed = _MIN_ENEMY_SPEED + speedRange * speedRoll;
+
+    double rotationRoll = _rng(_gen);
+    double rotationRadians = M_PI * rotationRoll;
+
+    if (spawningLeft)
+    {
+        rotationRadians -= M_PI / 2;
+    }
+
+    if (spawningRight)
+    {
+        rotationRadians += M_PI / 2;
+    }
+
+    if (spawningTop)
+    {
+        rotationRadians += M_PI;
+    }
+
+    enemy.speed = speed;
+    enemy.xSpeed = speed * cos(rotationRadians);
+    enemy.ySpeed = -speed * sin(rotationRadians);
+
+    _pool[enemy.id] = enemy;
 }
 
 } // namespace smocc::enemies
