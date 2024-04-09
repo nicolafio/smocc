@@ -20,6 +20,7 @@ Public License 3.0.
 #include "bullets.h"
 #include "colors.h"
 #include "enemies.h"
+#include "explosions.h"
 #include "game.h"
 #include "gfx.h"
 #include "player.h"
@@ -206,6 +207,8 @@ void update()
                 if (collision)
                 {
                     enemy.health -= bullets::BULLET_DAMAGE;
+
+                    explosions::spawn(bx, by);
                     bullets::despawn(bullet.id);
 
                     return;

@@ -26,6 +26,9 @@ obj/enemies.o: obj/
 obj/bullets.o: obj/
 	g++ -o obj/bullets.o -c src/bullets.cc $(flags)
 
+obj/explosions.o: obj/
+	g++ -o obj/explosions.o -c src/explosions.cc $(flags)
+
 obj/:
 	mkdir -p obj
 
