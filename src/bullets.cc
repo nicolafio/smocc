@@ -33,7 +33,7 @@ const int _BULLET_LENGTH = 6;
 
 SDL_Color _BULLET_COLOR = SMOCC_FOREGROUND_COLOR;
 
-unordered_map<unsigned long long, Bullet> _pool;
+unordered_map<unsigned long long, Bullet> _bullets;
 unordered_set<unsigned long long> _toDespawn;
 
 unsigned long long _nextID;
@@ -57,20 +57,20 @@ void update()
 
     _resetDone = false;
 
-    for (auto& [id, bullet] : _pool)
+    for (auto& [id, bullet] : _bullets)
     {
         _updateBullet(bullet);
     }
 
     for (unsigned long long id : _toDespawn)
     {
-        _pool.erase(id);
+        _bullets.erase(id);
     }
 
     _toDespawn.clear();
 
     gfx::setDrawColor(&_BULLET_COLOR);
-    for (auto& [id, bullet] : _pool)
+    for (auto& [id, bullet] : _bullets)
     {
         gfx::drawLine(bullet.xBase, bullet.yBase, bullet.xTip, bullet.yTip);
     }
@@ -93,18 +93,18 @@ void spawn(double x, double y, double xDirection, double yDirection)
     bullet.ySpeed = yDirection * _BULLET_SPEED;
     bullet.despawning = false;
 
-    _pool[bullet.id] = bullet;
+    _bullets[bullet.id] = bullet;
 }
 
 void despawn(unsigned long long id)
 {
-    _pool[id].despawning = true;
+    _bullets[id].despawning = true;
     _toDespawn.insert(id);
 }
 
 void forEach(std::function<void(const Bullet& bullet)> callback)
 {
-    for (auto& [_, bullet] : _pool)
+    for (auto& [_, bullet] : _bullets)
     {
         callback(bullet);
     }
@@ -112,7 +112,7 @@ void forEach(std::function<void(const Bullet& bullet)> callback)
 
 void _reset()
 {
-    _pool.clear();
+    _bullets.clear();
     _toDespawn.clear();
     _nextID = 0;
 

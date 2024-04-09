@@ -66,7 +66,7 @@ mt19937 _gen(_rd());
 uniform_real_distribution<double> _rng(0.0, 1.0);
 unsigned long long _nextID;
 
-unordered_map<unsigned long long, Enemy> _pool;
+unordered_map<unsigned long long, Enemy> _enemies;
 
 void _spawnEnemy();
 void _rollEnemySpawn();
@@ -104,20 +104,20 @@ void update()
 
     vector<Enemy> toRemove;
 
-    for (auto& [_, enemy] : _pool)
+    for (auto& [_, enemy] : _enemies)
     {
         if (enemy.health <= 0) toRemove.push_back(enemy);
     }
 
     for (Enemy& enemy : toRemove)
     {
-        _pool.erase(enemy.id);
+        _enemies.erase(enemy.id);
         game::incrementScore();
     }
 
-    for (auto& [id, _] : _pool)
+    for (auto& [id, _] : _enemies)
     {
-        Enemy& enemy = _pool[id];
+        Enemy& enemy = _enemies[id];
 
         const double radiusRange = _MAX_ENEMY_RADIUS - _MIN_ENEMY_RADIUS;
         double radiusFactor = enemy.health / _MAX_ENEMY_HEALTH;
@@ -162,7 +162,7 @@ void update()
             enemy.ySpeed = yDirection * enemy.speed;
         }
 
-        for (auto& [_, otherEnemy] : _pool)
+        for (auto& [_, otherEnemy] : _enemies)
         {
             if (enemy.id == otherEnemy.id) continue;
 
@@ -192,7 +192,7 @@ void update()
         {
             if (bullet.despawning) return;
 
-            for (auto& [_, enemy] : _pool)
+            for (auto& [_, enemy] : _enemies)
             {
                 double ex = enemy.x;
                 double ey = enemy.y;
@@ -216,7 +216,7 @@ void update()
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
     gfx::setDrawColor(&_ENEMY_COLOR);
 
-    for (auto& [_, enemy] : _pool)
+    for (auto& [_, enemy] : _enemies)
     {
         gfx::fillCircle(enemy.x, enemy.y, enemy.radius);
     }
@@ -224,7 +224,7 @@ void update()
 
 void _reset()
 {
-    _pool.clear();
+    _enemies.clear();
     _maxEnemies = 0;
     _spawnRollsDone = 0;
     _nextID = 0;
@@ -249,7 +249,7 @@ unsigned long long _getSpawnRollsToDo()
 
 void _rollEnemySpawn()
 {
-    int enemiesCount = _pool.size();
+    int enemiesCount = _enemies.size();
 
     if (enemiesCount < _MIN_ENEMY_COUNT)
     {
@@ -345,7 +345,7 @@ void _spawnEnemy()
     enemy.xSpeed = speed * cos(rotationRadians);
     enemy.ySpeed = -speed * sin(rotationRadians);
 
-    _pool[enemy.id] = enemy;
+    _enemies[enemy.id] = enemy;
 }
 
 } // namespace smocc::enemies
