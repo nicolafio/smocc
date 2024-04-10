@@ -85,6 +85,7 @@ void spawn(double x, double y)
 void _reset()
 {
     _explosions.clear();
+    _toDespawn.clear();
     _nextID = 0;
 
     _resetDone = true;
