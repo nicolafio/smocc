@@ -9,7 +9,7 @@ Public License 3.0.
 
 */
 
-#pragma once;
+#pragma once
 
 namespace smocc::explosions
 {
