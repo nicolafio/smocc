@@ -32,6 +32,7 @@ unsigned int _record;
 double _difficulty;
 unsigned long long _gameStartTimeMilliseconds;
 unsigned long long _lastUpdateTimeMilliseconds;
+unsigned long long _timeElapsedMilliseconds;
 unsigned int _deltaTime;
 
 void init()
@@ -46,6 +47,7 @@ void begin()
     _gameRunning = true;
     _gameStartTimeMilliseconds = SDL_GetTicks64();
     _lastUpdateTimeMilliseconds = _gameStartTimeMilliseconds;
+    _timeElapsedMilliseconds = 0;
     _deltaTime = 0;
 
     _score = 0;
@@ -69,6 +71,7 @@ void update()
 
     _deltaTime = currentTime - _lastUpdateTimeMilliseconds;
     _lastUpdateTimeMilliseconds = currentTime;
+    _timeElapsedMilliseconds = currentTime - _gameStartTimeMilliseconds;
 
     double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 3000.0));
 
@@ -107,7 +110,7 @@ double getDifficulty()
 
 unsigned long long getTimeElapsedMilliseconds()
 {
-    return SDL_GetTicks64() - _gameStartTimeMilliseconds;
+    return _timeElapsedMilliseconds;
 }
 
 unsigned int getDeltaTimeMilliseconds()
