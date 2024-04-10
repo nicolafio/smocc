@@ -24,6 +24,7 @@ Public License 3.0.
 #include "game.h"
 #include "gfx.h"
 #include "player.h"
+#include "rng.h"
 #include "smocc.h"
 #include "ui.h"
 
@@ -62,9 +63,6 @@ struct Enemy
     double ySpeed;
 };
 
-random_device _rd;
-mt19937 _gen(_rd());
-uniform_real_distribution<double> _rng(0.0, 1.0);
 unsigned long long _nextID;
 
 unordered_map<unsigned long long, Enemy> _enemies;
@@ -262,7 +260,7 @@ void _rollEnemySpawn()
     if (enemiesCount >= _MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
     {
         double spawnChance = game::getDifficulty();
-        double roll = _rng(_gen);
+        double roll = rng::roll();
 
         if (roll < spawnChance) _spawnEnemy();
     }
@@ -277,14 +275,14 @@ void _spawnEnemy()
     enemy.id = _nextID++;
     enemy.radius = 0;
 
-    double edgeRoll = _rng(_gen);
+    double edgeRoll = rng::roll();
 
     bool spawningLeft = edgeRoll <= .25;
     bool spawningRight = edgeRoll > .25 && edgeRoll <= .5;
     bool spawningTop = edgeRoll > .5 && edgeRoll <= .75;
     bool spawningBottom = edgeRoll > .75;
 
-    double locationRoll = _rng(_gen);
+    double locationRoll = rng::roll();
 
     SDL_Window* window = smocc::getWindow();
     int windowWidth, windowHeight;
@@ -315,18 +313,18 @@ void _spawnEnemy()
         enemy.y = windowHeight;
     }
 
-    double healthRoll = _rng(_gen);
+    double healthRoll = rng::roll();
     double difficulty = game::getDifficulty();
     const double healthRange = _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
     int healthAddendum = round(healthRange * healthRoll * difficulty);
 
     enemy.health = _MIN_ENEMY_HEALTH + healthAddendum;
 
-    double speedRoll = _rng(_gen);
+    double speedRoll = rng::roll();
     const double speedRange = _MAX_ENEMY_SPEED - _MIN_ENEMY_SPEED;
     double speed = _MIN_ENEMY_SPEED + speedRange * speedRoll;
 
-    double rotationRoll = _rng(_gen);
+    double rotationRoll = rng::roll();
     double rotationRadians = M_PI * rotationRoll;
 
     if (spawningLeft)

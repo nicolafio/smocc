@@ -33,6 +33,9 @@ obj/bullets.o: obj/
 obj/explosions.o: obj/
 	g++ -o obj/explosions.o -c src/explosions.cc $(std_flag) $(sdl2_cflags)
 
+obj/rng.o: obj/
+	g++ -o obj/rng.o -c src/rng.cc $(std_flag)
+
 obj/:
 	mkdir -p obj
 
