@@ -259,33 +259,43 @@ void _updateBullet(Bullet& bullet)
 
             gfx::direction(bullet.xBase, bullet.yBase, ex, ey, &exd, &eyd);
 
-            // 🪄 magic (https://stackoverflow.com/a/3461533)
-            double isLeft = xd * eyd - yd * exd > 0;
+            double difference = abs(xd - exd) + abs(yd - eyd);
+            bool needsToRotate = difference > 0.001;
 
-            double rotation = isLeft ? -1 : 1;
-            rotation *= _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND;
-            rotation *= deltaTime;
+            if (needsToRotate)
+            {
+                // 🪄 magic (https://stackoverflow.com/a/3461533)
+                bool enemyIsOverLeft = xd * eyd - yd * exd > 0;
 
-            gfx::rotate(xd, yd, rotation, &xd, &yd);
+                double rotation = enemyIsOverLeft ? -1 : 1;
+                rotation *=
+                    _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND;
+                rotation *= deltaTime;
 
-            bullet.xDirection = xd;
-            bullet.yDirection = yd;
+                gfx::rotate(xd, yd, rotation, &xd, &yd);
 
-            double speed = gfx::magnitude(bullet.xSpeed, bullet.ySpeed);
-            bullet.xSpeed = xd * speed;
-            bullet.ySpeed = yd * speed;
+                bool enemyWasOverLeft = enemyIsOverLeft;
+                enemyIsOverLeft = xd * eyd - yd * exd > 0;
 
-            bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
-            bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
+                bool sideFlipped = enemyWasOverLeft != enemyIsOverLeft;
+
+                if (sideFlipped)
+                {
+                    xd = exd;
+                    yd = eyd;
+                }
+
+                bullet.xDirection = xd;
+                bullet.yDirection = yd;
+                bullet.xSpeed = xd * _BULLET_SPEED;
+                bullet.ySpeed = yd * _BULLET_SPEED;
+                bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
+                bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
+            }
         }
     }
 
-    bool bouncing = buffs::isActive(BOUNCING_BULLETS);
-
-    bool shouldDespawn =
-        !bouncing && !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
-
-    if (bouncing)
+    if (buffs::isActive(BOUNCING_BULLETS))
     {
         SDL_Window* win = smocc::getWindow();
         int w, h;
@@ -304,7 +314,11 @@ void _updateBullet(Bullet& bullet)
             bullet.xSpeed = -bullet.xSpeed;
             bullet.xTip = bullet.xBase + bullet.xDirection * _BULLET_LENGTH;
         }
+
+        return;
     }
+
+    bool shouldDespawn = !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
 
     if (shouldDespawn)
     {
