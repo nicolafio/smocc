@@ -12,6 +12,7 @@ Public License 3.0.
 #include <SDL.h>
 #include <iostream>
 
+#include "buffs.h"
 #include "bullets.h"
 #include "colors.h"
 #include "game.h"
@@ -21,6 +22,7 @@ Public License 3.0.
 
 using namespace std;
 using namespace smocc;
+using enum buffs::BuffType;
 
 namespace smocc::player
 {
@@ -120,10 +122,13 @@ void update()
 
     _bulletsSpawnCooldown -= deltaTimeMilliseconds;
 
+    if (buffs::isActive(RAPID_FIRE))
+        _bulletsSpawnCooldown -= deltaTimeMilliseconds;
+
     if (_bulletsSpawnCooldown < 0)
     {
         _bulletsSpawnCooldown += _BULLETS_SPAWN_DELAY_MILLISECONDS;
-        bullets::spawn(_xPosition, _yPosition, xDirection, yDirection);
+        bullets::fire(_xPosition, _yPosition, xDirection, yDirection);
     }
 
     gfx::setDrawColor(&_PLAYER_COLOR);

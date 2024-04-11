@@ -15,4 +15,6 @@ namespace smocc::rng
 // Rolls a random number between 0 and 1.
 double roll();
 
+int rollInt(int min, int max);
+
 } // namespace smocc::rng

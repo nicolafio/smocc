@@ -37,7 +37,7 @@ struct Bullet
 void init();
 void update();
 
-void spawn(double x, double y, double xDirection, double yDirection);
+void fire(double x, double y, double xDirection, double yDirection);
 void despawn(unsigned long long id);
 void forEach(std::function<void(const Bullet& bullet)> callback);
 

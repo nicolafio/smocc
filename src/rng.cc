@@ -9,6 +9,7 @@ Public License 3.0.
 
 */
 
+#include <cmath>
 #include <random>
 
 using namespace std;
@@ -23,6 +24,14 @@ namespace smocc::rng
 double roll()
 {
     return _rng(_gen);
+}
+
+int rollInt(int min, int max)
+{
+    double r = roll();
+    int range = max - min + 1;
+    int i = min + (int)(r * range);
+    return std::min(i, max);
 }
 
 }

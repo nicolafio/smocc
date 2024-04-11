@@ -17,6 +17,7 @@ Public License 3.0.
 
 #include <SDL.h>
 
+#include "buffs.h"
 #include "bullets.h"
 #include "colors.h"
 #include "enemies.h"
@@ -30,6 +31,7 @@ Public License 3.0.
 
 using namespace std;
 using namespace smocc;
+using enum buffs::BuffType;
 
 namespace smocc::enemies
 {
@@ -39,29 +41,23 @@ const double _MIN_ENEMY_HEALTH = 1.0;
 const double _MAX_ENEMY_HEALTH = 30.0;
 const double _MIN_ENEMY_SPEED = 0.2;
 const double _MAX_ENEMY_SPEED = 0.5;
+const double _MAX_ENEMY_PUSHED_SPEED = 2.0;
 const int _MIN_ENEMY_COUNT = 1;
 const int _MAX_ENEMY_COUNT = 10;
 const double _MIN_ENEMY_RADIUS = 15.0;
 const double _MAX_ENEMY_RADIUS = 75.0;
 const double _ENEMY_RADIUS_CHANGE_SPEED = 0.1;
+const double _DROPPED_BUFF_RELATIVE_SPEED = 1.0 / 6.0;
+const double _SLOW_ENEMIES_BUFF_FACTOR = 0.2;
+const double _PUSH_ENEMIES_BUFF_FACTOR = 0.2;
+const double _PUSH_ENEMIES_EFFECT_AT_MIN_HEALTH = 1.5;
+const double _PUSH_ENEMIES_EFFECT_AT_MAX_HEALTH = 0.5;
 
 SDL_Color _ENEMY_COLOR = SMOCC_FOREGROUND_COLOR;
 
 int _maxEnemies;
 unsigned long long _spawnRollsDone;
 bool _resetDone;
-
-struct Enemy
-{
-    unsigned long long id;
-    int health;
-    double x;
-    double y;
-    double radius;
-    double speed;
-    double xSpeed;
-    double ySpeed;
-};
 
 unsigned long long _nextID;
 
@@ -111,6 +107,19 @@ void update()
     for (Enemy& enemy : toRemove)
     {
         _enemies.erase(enemy.id);
+        double buffXSpeed = enemy.xSpeed * _DROPPED_BUFF_RELATIVE_SPEED;
+        double buffYSpeed = enemy.ySpeed * _DROPPED_BUFF_RELATIVE_SPEED;
+
+        if (buffs::isActive(PUSH_ENEMIES))
+        {
+            // Invert direction of the spawning buff because otherwise it
+            // will most likely go off map when the buff for pushing enemies
+            // is active.
+            buffXSpeed *= -1;
+            buffYSpeed *= -1;
+        }
+
+        buffs::rollSpawn(enemy.x, enemy.y, buffXSpeed, buffYSpeed);
         game::incrementScore();
     }
 
@@ -182,8 +191,13 @@ void update()
             enemy.ySpeed = -yDirection * enemy.speed;
         }
 
-        enemy.x += enemy.xSpeed * deltaTimeMilliseconds;
-        enemy.y += enemy.ySpeed * deltaTimeMilliseconds;
+        double speedFactor = 1.0;
+
+        if (buffs::isActive(SLOW_ENEMIES))
+            speedFactor = _SLOW_ENEMIES_BUFF_FACTOR;
+
+        enemy.x += speedFactor * enemy.xSpeed * deltaTimeMilliseconds;
+        enemy.y += speedFactor * enemy.ySpeed * deltaTimeMilliseconds;
     }
 
     bullets::forEach(
@@ -206,6 +220,48 @@ void update()
                 {
                     enemy.health -= bullets::BULLET_DAMAGE;
 
+                    if (buffs::isActive(DOUBLE_DAMAGE))
+                        enemy.health -= bullets::BULLET_DAMAGE;
+
+                    if (buffs::isActive(PUSH_ENEMIES))
+                    {
+                        double effect = _PUSH_ENEMIES_BUFF_FACTOR;
+
+                        double healthRange =
+                            _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
+                        double healthFactor =
+                            (enemy.health - _MIN_ENEMY_HEALTH) / healthRange;
+
+                        double maxHealthEffect =
+                            _PUSH_ENEMIES_EFFECT_AT_MIN_HEALTH;
+                        double minHealthEffect =
+                            _PUSH_ENEMIES_EFFECT_AT_MAX_HEALTH;
+                        double healthEffectRange =
+                            maxHealthEffect - minHealthEffect;
+
+                        double healthEffect =
+                            minHealthEffect +
+                            (1 - healthFactor) * healthEffectRange;
+
+                        effect *= healthEffect;
+
+                        enemy.xSpeed += bullet.xDirection * effect;
+                        enemy.ySpeed += bullet.yDirection * effect;
+                        enemy.speed =
+                            gfx::magnitude(enemy.xSpeed, enemy.ySpeed);
+
+                        if (enemy.speed > _MAX_ENEMY_PUSHED_SPEED)
+                        {
+                            double x, y;
+
+                            gfx::unit(enemy.xSpeed, enemy.ySpeed, &x, &y);
+
+                            enemy.xSpeed = x * _MAX_ENEMY_PUSHED_SPEED;
+                            enemy.ySpeed = y * _MAX_ENEMY_PUSHED_SPEED;
+                            enemy.speed = _MAX_ENEMY_PUSHED_SPEED;
+                        }
+                    }
+
                     explosions::spawn(bx, by);
                     bullets::despawn(bullet.id);
 
@@ -221,6 +277,12 @@ void update()
     {
         gfx::fillCircle(enemy.x, enemy.y, enemy.radius);
     }
+}
+
+void forEach(function<void(const Enemy& enemy)> callback)
+{
+    for (auto& [_, enemy] : _enemies)
+        callback(enemy);
 }
 
 void _reset()

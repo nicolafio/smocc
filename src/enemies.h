@@ -11,10 +11,25 @@ Public License 3.0.
 
 #pragma once
 
+#include <functional>
+
 namespace smocc::enemies
 {
 
+struct Enemy
+{
+    unsigned long long id;
+    int health;
+    double x;
+    double y;
+    double radius;
+    double speed;
+    double xSpeed;
+    double ySpeed;
+};
+
 void init();
 void update();
+void forEach(std::function<void(const Enemy& enemy)> callback);
 
 } // namespace smocc::enemies

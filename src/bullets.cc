@@ -10,28 +10,42 @@ Public License 3.0.
 */
 
 #include <cassert>
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 
 #include <SDL.h>
 
+#include "buffs.h"
 #include "bullets.h"
 #include "colors.h"
+#include "enemies.h"
 #include "game.h"
 #include "gfx.h"
 #include "smocc.h"
 
 using namespace std;
 using namespace smocc;
+using enum buffs::BuffType;
 
 namespace smocc::bullets
 {
 
 const double _BULLET_SPEED = 0.5;
+const double _BULLET_OPACITY = 0.7;
 const int _BULLET_LENGTH = 6;
+const int _DOUBLE_FIRE_BUFF_BULLETS_SPACING = 6;
+const double _TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS = M_PI / 8;
+const double _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND = 0.005;
 
-SDL_Color _BULLET_COLOR = SMOCC_FOREGROUND_COLOR;
+SDL_Color _FG_COLOR = SMOCC_FOREGROUND_COLOR;
+SDL_Color _DOUBLE_DAMAGE_BULLET_COLOR = SMOCC_FOREGROUND_COLOR;
+
+const Uint8 _BULLET_ALPHA = (Uint8)(round(SDL_ALPHA_OPAQUE * _BULLET_OPACITY));
+SDL_Color _BULLET_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
+                           _BULLET_ALPHA};
 
 unordered_map<unsigned long long, Bullet> _bullets;
 unordered_set<unsigned long long> _toDespawn;
@@ -39,11 +53,25 @@ unordered_set<unsigned long long> _toDespawn;
 unsigned long long _nextID;
 bool _resetDone;
 
+double _tripleFireLeftBulletDirectionX;
+double _tripleFireLeftBulletDirectionY;
+double _tripleFireRightBulletDirectionX;
+double _tripleFireRightBulletDirectionY;
+
+void _spawn(double, double, double, double);
 void _reset();
 void _updateBullet(Bullet& bullet);
 
 void init()
 {
+    gfx::rotate(1, 0, _TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
+                &_tripleFireLeftBulletDirectionX,
+                &_tripleFireLeftBulletDirectionY);
+
+    gfx::rotate(1, 0, -_TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
+                &_tripleFireRightBulletDirectionX,
+                &_tripleFireRightBulletDirectionY);
+
     _reset();
 }
 
@@ -69,18 +97,87 @@ void update()
 
     _toDespawn.clear();
 
-    gfx::setDrawColor(&_BULLET_COLOR);
+    bool doubleDamage = buffs::isActive(DOUBLE_DAMAGE);
+    SDL_Color* c = doubleDamage ? &_DOUBLE_DAMAGE_BULLET_COLOR : &_BULLET_COLOR;
+
+    gfx::setDrawColor(c);
+
     for (auto& [id, bullet] : _bullets)
     {
         gfx::drawLine(bullet.xBase, bullet.yBase, bullet.xTip, bullet.yTip);
     }
 }
 
-void spawn(double x, double y, double xDirection, double yDirection)
+void fire(double x, double y, double xDirection, double yDirection)
 {
-    // [xDirection, yDirection] must be a unit vector.
-    assert(abs(xDirection * xDirection + yDirection * yDirection - 1.0) < 0.01);
+    assert(gfx::isUnitVector(xDirection, yDirection, 0.01));
 
+    vector<pair<double, double>> positions;
+    vector<pair<double, double>> directions;
+
+    positions.push_back({x, y});
+    directions.push_back({xDirection, yDirection});
+
+    if (buffs::isActive(TRIPLE_FIRE))
+    {
+        double lx, ly, rx, ry;
+        double ldx = _tripleFireLeftBulletDirectionX;
+        double ldy = _tripleFireLeftBulletDirectionY;
+        double rdx = _tripleFireRightBulletDirectionX;
+        double rdy = _tripleFireRightBulletDirectionY;
+
+        gfx::rotate(xDirection, yDirection, ldx, ldy, &lx, &ly);
+        gfx::rotate(xDirection, yDirection, rdx, rdy, &rx, &ry);
+
+        positions.push_back({x, y});
+        positions.push_back({x, y});
+
+        directions.push_back({lx, ly});
+        directions.push_back({rx, ry});
+    }
+
+    if (buffs::isActive(DOUBLE_FIRE))
+    {
+        int n = positions.size();
+
+        vector<pair<double, double>> p(positions);
+        vector<pair<double, double>> d(directions);
+
+        positions.clear();
+        directions.clear();
+
+        for (int i = 0; i < n; i++)
+        {
+            double x = p[i].first;
+            double y = p[i].second;
+            double dx = d[i].first;
+            double dy = d[i].second;
+            double lx, ly, rx, ry;
+            double s = _DOUBLE_FIRE_BUFF_BULLETS_SPACING / 2;
+
+            gfx::leftward(x, y, s, dx, dy, &lx, &ly);
+            gfx::rightward(x, y, s, dx, dy, &rx, &ry);
+
+            positions.push_back({lx, ly});
+            positions.push_back({rx, ry});
+
+            directions.push_back({dx, dy});
+            directions.push_back({dx, dy});
+        }
+    }
+
+    int n = positions.size();
+
+    for (int i = 0; i < n; i++)
+    {
+        pair<double, double> pos = positions[i];
+        pair<double, double> dir = directions[i];
+        _spawn(pos.first, pos.second, dir.first, dir.second);
+    }
+}
+
+void _spawn(double x, double y, double xDirection, double yDirection)
+{
     Bullet bullet;
     bullet.id = _nextID++;
     bullet.xBase = x;
@@ -131,7 +228,83 @@ void _updateBullet(Bullet& bullet)
     bullet.xTip += xChange;
     bullet.yTip += yChange;
 
-    bool shouldDespawn = !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
+    if (buffs::isActive(FOLLOW_ENEMIES))
+    {
+        bool foundEnemy = false;
+        double closestDistance = numeric_limits<double>::max();
+        double ex, ey;
+
+        enemies::forEach(
+            [&](const enemies::Enemy& enemy)
+            {
+                foundEnemy = true;
+
+                double x = bullet.xTip - enemy.x;
+                double y = bullet.yTip - enemy.y;
+                double distance = x * x + y * y;
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    ex = enemy.x;
+                    ey = enemy.y;
+                }
+            });
+
+        if (foundEnemy)
+        {
+            double exd, eyd; // enemy direction
+            double xd = bullet.xDirection;
+            double yd = bullet.yDirection;
+
+            gfx::direction(bullet.xBase, bullet.yBase, ex, ey, &exd, &eyd);
+
+            // 🪄 magic (https://stackoverflow.com/a/3461533)
+            double isLeft = xd * eyd - yd * exd > 0;
+
+            double rotation = isLeft ? -1 : 1;
+            rotation *= _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND;
+            rotation *= deltaTime;
+
+            gfx::rotate(xd, yd, rotation, &xd, &yd);
+
+            bullet.xDirection = xd;
+            bullet.yDirection = yd;
+
+            double speed = gfx::magnitude(bullet.xSpeed, bullet.ySpeed);
+            bullet.xSpeed = xd * speed;
+            bullet.ySpeed = yd * speed;
+
+            bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
+            bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
+        }
+    }
+
+    bool bouncing = buffs::isActive(BOUNCING_BULLETS);
+
+    bool shouldDespawn =
+        !bouncing && !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
+
+    if (bouncing)
+    {
+        SDL_Window* win = smocc::getWindow();
+        int w, h;
+        SDL_GetWindowSize(win, &w, &h);
+
+        if (bullet.yTip < 0 || bullet.yTip > h)
+        {
+            bullet.yDirection = -bullet.yDirection;
+            bullet.ySpeed = -bullet.ySpeed;
+            bullet.yTip = bullet.yBase + bullet.yDirection * _BULLET_LENGTH;
+        }
+
+        if (bullet.xTip < 0 || bullet.xTip > w)
+        {
+            bullet.xDirection = -bullet.xDirection;
+            bullet.xSpeed = -bullet.xSpeed;
+            bullet.xTip = bullet.xBase + bullet.xDirection * _BULLET_LENGTH;
+        }
+    }
 
     if (shouldDespawn)
     {

@@ -7,9 +7,9 @@ Copyright (C) 2024 Nicola Fiori (JD342)
 This file is part of the SMOCC, licensed under the terms of the GNU General
 Public License 3.0.
 
-The function `fillEllipse` contains adapted code originating from
+The functions `fillEllipse` and `fillPolygon` have adapted code originating from
 SDL2_gfxPrimitives.c by Andreas Schiffler and Richard Russell, originally named
-`aaFilledEllipseRGBA`.
+`aaFilledEllipseRGBA` and `aaFilledPolygonRGBA`, respectively.
 
 Russel's source was found at
 https://github.com/rtrussell/BBCSDL/blob/85f1c5f/src/SDL2_gfxPrimitives.c
@@ -45,7 +45,12 @@ Richard Russell -- richard at rtrussell dot co dot uk
 
 */
 
+#include <algorithm>
+#include <cassert>
 #include <iostream>
+#include <limits>
+#include <utility>
+#include <vector>
 
 #include "gfx.h"
 #include "smocc.h"
@@ -71,6 +76,24 @@ SDL_Cursor* systemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
+double distance(double x1, double y1, double x2, double y2)
+{
+    double dx = x1 - x2;
+    double dy = y1 - y2;
+
+    return sqrt(dx * dx + dy * dy);
+}
+
+double magnitude(double x, double y)
+{
+    return sqrt(x * x + y * y);
+}
+
+bool isUnitVector(double x, double y, double precision)
+{
+    return abs(magnitude(x, y) - 1.0) < precision;
+}
+
 bool pointInRect(double x, double y, SDL_Rect* rect)
 {
     return pointInRect(x, y, rect->x, rect->y, rect->w, rect->h);
@@ -91,6 +114,16 @@ bool pointOnScreen(double x, double y)
     return pointInRect(x, y, 0, 0, w, h);
 }
 
+bool rectOnScreen(double x, double y, double w, double h)
+{
+    SDL_Window* window = smocc::getWindow();
+    int ww, wh;
+
+    SDL_GetWindowSize(window, &ww, &wh);
+
+    return rectsOverlap(x, y, w, h, 0, 0, ww, wh);
+}
+
 bool mouseInRect(SDL_Rect* rect)
 {
     int mouseX, mouseY;
@@ -98,6 +131,12 @@ bool mouseInRect(SDL_Rect* rect)
     SDL_GetMouseState(&mouseX, &mouseY);
 
     return pointInRect(mouseX, mouseY, rect);
+}
+
+bool rectsOverlap(double x1, double y1, double w1, double h1, double x2,
+                  double y2, double w2, double h2)
+{
+    return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
 }
 
 bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
@@ -119,6 +158,14 @@ bool pointInCircle(double x, double y, double cx, double cy, double r)
     return distance < r;
 }
 
+void unit(double x, double y, double* unitX, double* unitY)
+{
+    double m = magnitude(x, y);
+
+    *unitX = x / m;
+    *unitY = y / m;
+}
+
 void direction(double originX, double originY, double targetX, double targetY,
                double* directionX, double* directionY)
 {
@@ -128,6 +175,61 @@ void direction(double originX, double originY, double targetX, double targetY,
 
     *directionX = dx / distance;
     *directionY = dy / distance;
+}
+
+void left(double directionX, double directionY, double* leftX, double* leftY)
+{
+    assert(isUnitVector(directionX, directionY, 0.01));
+
+    *leftX = directionY;
+    *leftY = -directionX;
+}
+
+void right(double directionX, double directionY, double* rightX, double* rightY)
+{
+    assert(isUnitVector(directionX, directionY, 0.01));
+
+    *rightX = -directionY;
+    *rightY = directionX;
+}
+
+void leftward(double x, double y, double distance, double directionX,
+              double directionY, double* leftwardX, double* leftwardY)
+{
+    assert(isUnitVector(directionX, directionY, 0.01));
+
+    double leftX, leftY;
+
+    left(directionX, directionY, &leftX, &leftY);
+
+    *leftwardX = x + leftX * distance;
+    *leftwardY = y + leftY * distance;
+}
+
+void rightward(double x, double y, double distance, double directionX,
+               double directionY, double* rightwardX, double* rightwardY)
+{
+    assert(isUnitVector(directionX, directionY, 0.01));
+
+    double rightX, rightY;
+
+    right(directionX, directionY, &rightX, &rightY);
+
+    *rightwardX = x + rightX * distance;
+    *rightwardY = y + rightY * distance;
+}
+
+void rotate(double x, double y, double dx, double dy, double* rx, double* ry)
+{
+    assert(isUnitVector(dx, dy, 0.01));
+
+    *rx = x * dx - y * dy;
+    *ry = x * dy + y * dx;
+}
+
+void rotate(double x, double y, double radians, double* rx, double* ry)
+{
+    rotate(x, y, cos(radians), -sin(radians), rx, ry);
 }
 
 TTF_Font* font(fs::path& fontPath, int size)
@@ -471,6 +573,302 @@ void fillEllipse(float cx, float cy, float rx, float ry)
 void fillCircle(float x, float y, float radius)
 {
     fillEllipse(x, y, radius, radius);
+}
+
+/*
+
+The function `fillPolygon` is adapted from `aaFilledPolygonRGBA` by
+Richard Russell in SDL2_gfxPrimitives.c. The relevant copyright notice is given
+at the top of this file. Please review it before using this code.
+
+The source of Richard Russell's function was found at:
+https://github.com/rtrussell/BBCSDL/blob/85f1c5f/src/SDL2_gfxPrimitives.c#L4801-L5023
+
+Paramters:
+
+- vx Vertex array containing X coordinates of the points of the filled polygon.
+- vy Vertex array containing Y coordinates of the points of the filled polygon.
+- n Number of points in the vertex array. Minimum number is 3.
+
+*/
+void fillPolygon(const double* vx, const double* vy, int n)
+{
+    assert(n >= 3);
+
+    Uint8 r, g, b, a;
+    int i, j, xi, yi;
+    double x1, x2, y0, y1, y2, minx, maxx, prec;
+    float *list, *strip;
+    const int POLYSIZE = 16384;
+
+    getDrawColor(&r, &g, &b, &a);
+
+    if (n < 3) return;
+
+    auto compareFloat2 = [](const void* a, const void* b) -> int
+    {
+        float diff = *((float*)a + 1) - *((float*)b + 1);
+        if (diff != 0.0) return (diff > 0) - (diff < 0);
+        diff = *(float*)a - *(float*)b;
+        return (diff > 0) - (diff < 0);
+    };
+
+    // Find extrema:
+    minx = 99999.0;
+    maxx = -99999.0;
+    prec = 0.00001;
+
+    for (i = 0; i < n; i++)
+    {
+        double x = vx[i];
+        double y = fabs(vy[i]);
+        if (x < minx) minx = x;
+        if (x > maxx) maxx = x;
+        if (y > prec) prec = y;
+    }
+
+    minx = floor(minx);
+    maxx = floor(maxx);
+    prec = floor(pow(2, 19) / prec);
+
+    // Allocate main array, this determines the maximum polygon size and
+    // complexity:
+    list = (float*)malloc(POLYSIZE * sizeof(float));
+
+    assert(list != NULL);
+
+    if (list == NULL) return;
+
+    // Build vertex list.  Special x-values used to indicate vertex type:
+    // x = -100001.0 indicates /\, x = -100003.0 indicates \/, x = -100002.0
+    // neither
+    yi = 0;
+    y0 = floor(vy[n - 1] * prec) / prec;
+    y1 = floor(vy[0] * prec) / prec;
+
+    for (i = 1; i <= n; i++)
+    {
+        assert(yi <= POLYSIZE - 4);
+
+        if (yi > POLYSIZE - 4)
+        {
+            free(list);
+            return;
+        }
+
+        y2 = floor(vy[i % n] * prec) / prec;
+
+        if (((y1 < y2) - (y1 > y2)) == ((y0 < y1) - (y0 > y1)))
+        {
+            list[yi++] = -100002.0;
+            list[yi++] = y1;
+            list[yi++] = -100002.0;
+            list[yi++] = y1;
+        }
+        else
+        {
+            if (y0 != y1)
+            {
+                list[yi++] = (y1 < y0) - (y1 > y0) - 100002.0;
+                list[yi++] = y1;
+            }
+            if (y1 != y2)
+            {
+                list[yi++] = (y1 < y2) - (y1 > y2) - 100002.0;
+                list[yi++] = y1;
+            }
+        }
+        y0 = y1;
+        y1 = y2;
+    }
+    xi = yi;
+
+    // Sort vertex list:
+    qsort(list, yi / 2, sizeof(float) * 2, compareFloat2);
+
+    // Append line list to vertex list:
+    for (i = 1; i <= n; i++)
+    {
+        double x, y;
+        double d = 0.5 / prec;
+
+        x1 = vx[i - 1];
+        y1 = floor(vy[i - 1] * prec) / prec;
+        x2 = vx[i % n];
+        y2 = floor(vy[i % n] * prec) / prec;
+
+        if (y2 < y1)
+        {
+            double tmp;
+
+            tmp = x1;
+            x1 = x2;
+            x2 = tmp;
+
+            tmp = y1;
+            y1 = y2;
+            y2 = tmp;
+        }
+
+        if (y2 != y1) y0 = (x2 - x1) / (y2 - y1);
+
+        for (j = 1; j < xi; j += 4)
+        {
+            y = list[j];
+
+            if (((y + d) <= y1) || (y == list[j + 4])) continue;
+            if ((y -= d) >= y2) break;
+
+            assert(yi <= POLYSIZE - 4);
+
+            if (yi > POLYSIZE - 4)
+            {
+                free(list);
+                return;
+            }
+
+            if (y > y1)
+            {
+                list[yi++] = x1 + y0 * (y - y1);
+                list[yi++] = y;
+            }
+
+            y += d * 2.0;
+
+            if (y < y2)
+            {
+                list[yi++] = x1 + y0 * (y - y1);
+                list[yi++] = y;
+            }
+        }
+
+        y = floor(y1) + 1.0;
+
+        while (y <= y2)
+        {
+            x = x1 + y0 * (y - y1);
+
+            assert(yi <= POLYSIZE - 2);
+
+            if (yi > POLYSIZE - 2)
+            {
+                free(list);
+                return;
+            }
+
+            list[yi++] = x;
+            list[yi++] = y;
+
+            y += 1.0;
+        }
+    }
+
+    // Sort combined list:
+    qsort(list, yi / 2, sizeof(float) * 2, compareFloat2);
+
+    // Plot lines:
+    strip = (float*)malloc((maxx - minx + 2) * sizeof(float));
+
+    assert(strip != NULL);
+
+    if (strip == NULL)
+    {
+        free(list);
+        return;
+    }
+
+    memset(strip, 0, (maxx - minx + 2) * sizeof(float));
+
+    n = yi;
+    yi = list[1];
+    j = 0;
+
+    for (i = 0; i < n - 7; i += 4)
+    {
+        float x1 = list[i + 0];
+        float y1 = list[i + 1];
+        float x3 = list[i + 2];
+        float x2 = list[i + j + 0];
+        float y2 = list[i + j + 1];
+        float x4 = list[i + j + 2];
+
+        if (x1 + x3 == -200002.0)
+            j += 4;
+        else if (x1 + x3 == -200006.0)
+            j -= 4;
+        else if ((x1 >= minx) && (x2 >= minx))
+        {
+            if (x1 > x2)
+            {
+                float tmp = x1;
+                x1 = x2;
+                x2 = tmp;
+            }
+
+            if (x3 > x4)
+            {
+                float tmp = x3;
+                x3 = x4;
+                x4 = tmp;
+            }
+
+            for (xi = x1 - minx; xi <= x4 - minx; xi++)
+            {
+                float u, v;
+                float x = minx + xi;
+
+                if (x < x2)
+                    u = (x - x1 + 1) / (x2 - x1 + 1);
+                else
+                    u = 1.0;
+
+                if (x >= x3 - 1)
+                    v = (x4 - x) / (x4 - x3 + 1);
+                else
+                    v = 1.0;
+
+                if ((u > 0.0) && (v > 0.0))
+                    strip[xi] += (y2 - y1) * (u + v - 1.0);
+            }
+        }
+
+        if ((yi == (list[i + 5] - 1.0)) || (i == n - 8))
+        {
+            for (xi = 0; xi <= maxx - minx; xi++)
+            {
+                if (strip[xi] != 0.0)
+                {
+                    if (strip[xi] >= 0.996)
+                    {
+                        int x0 = xi;
+
+                        while (strip[++xi] >= 0.996)
+                            ;
+
+                        xi--;
+
+                        setDrawColor(r, g, b, a);
+                        drawLine(minx + x0, yi, minx + xi, yi);
+                    }
+                    else
+                    {
+                        setDrawColor(r, g, b, a * strip[xi]);
+                        fillPixel(minx + xi, yi);
+                    }
+                }
+            }
+
+            memset(strip, 0, (maxx - minx + 2) * sizeof(float));
+
+            yi++;
+        }
+    }
+
+    setDrawColor(r, g, b, a);
+
+    // Free arrays:
+    free(list);
+    free(strip);
 }
 
 void renderTexture(SDL_Texture* texture, SDL_Rect* rect)
