@@ -71,7 +71,7 @@ struct BuffDrop
     double speedX, speedY;
 };
 
-unordered_map<BuffType, int> _timeLeftMilliseconds;
+unordered_map<BuffType, unsigned int> _timeLeftMilliseconds;
 unordered_map<unsigned long long, BuffDrop> _buffDrops;
 unordered_set<unsigned long long> _toDespawn;
 unsigned long long _nextID;
@@ -100,6 +100,14 @@ void update()
     gfx::setDrawColor(&_BUFF_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
 
+    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
+
+    for (BuffType buff : BUFF_TYPES)
+    {
+        unsigned int t = _timeLeftMilliseconds[buff];
+        _timeLeftMilliseconds[buff] = t > deltaTime ? t - deltaTime : 0;
+    }
+
     for (auto& [_, buff] : _buffDrops)
         _updateBuffDrop(buff);
 
@@ -117,7 +125,7 @@ bool isActive(BuffType type)
     return _timeLeftMilliseconds[type] > 0;
 }
 
-int getTimeLeftMilliseconds(BuffType type)
+unsigned int getTimeLeftMilliseconds(BuffType type)
 {
     return _timeLeftMilliseconds[type];
 }

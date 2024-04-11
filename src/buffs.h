@@ -36,7 +36,7 @@ void init();
 void update();
 void rollSpawn(double x, double y, double speedX, double speedY);
 bool isActive(BuffType type);
-int getTimeLeftMilliseconds(BuffType type);
+unsigned int getTimeLeftMilliseconds(BuffType type);
 char* getTitle(BuffType type);
 
 } // namespace smocc::buffs
