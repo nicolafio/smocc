@@ -76,6 +76,11 @@ SDL_Cursor* systemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
+double inverseLerp(double a, double b, double value)
+{
+    return (value - a) / (b - a);
+}
+
 double distance(double x1, double y1, double x2, double y2)
 {
     double dx = x1 - x2;

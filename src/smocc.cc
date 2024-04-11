@@ -92,13 +92,7 @@ void _init(int argc, char* argv[])
 
 void _event(SDL_Event* e)
 {
-    int type = e->type;
-
-    if (type == SDL_QUIT)
-    {
-        _quit = true;
-        return;
-    }
+    if (e->type == SDL_QUIT) _quit = true;
 }
 
 void _update()

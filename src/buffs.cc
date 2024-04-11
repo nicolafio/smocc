@@ -36,7 +36,7 @@ static double _BUFF_DURATION_MILLISECONDS = 10000;
 static double _BUFF_DROP_OPACITY = 0.7;
 static double _BUFF_DROP_SPAWN_CHANCE = 0.15;
 static double _BUFF_DROP_CHASE_SPEED = 0.2;
-static double _BUFF_DROP_CHASE_RADIUS = 100;
+static double _BUFF_DROP_MAGNETIC_RADIUS = 100;
 static double _BUFF_DROP_ROTATION_ANIMATION_RADIANS_PER_MILLISECOND = 0.01;
 static int _BUFF_DROP_SQUARE_SIDES_LENGTH = 10;
 
@@ -80,6 +80,9 @@ bool _resetDone;
 void _reset();
 void _spawnBuff(double x, double y, double speedX, double speedY);
 void _updateBuffDrop(BuffDrop& buffDrop);
+void _updateBuffDropLinearMovement(BuffDrop& buffDrop);
+void _updateBuffDropMagneticEffect(BuffDrop& buffDrop);
+void _renderBuffDrop(BuffDrop& buffDrop);
 void _rollBuff();
 
 void init()
@@ -165,38 +168,17 @@ void _updateBuffDrop(BuffDrop& buffDrop)
     double boundX = buffDrop.x - _BUFF_DROP_BOUNDING_RADIUS;
     double boundY = buffDrop.y - _BUFF_DROP_BOUNDING_RADIUS;
     double boundWH = _BUFF_DROP_BOUNDING_RADIUS * 2;
+    double outOfScreen = !gfx::rectOnScreen(boundX, boundY, boundWH, boundWH);
 
-    if (!gfx::rectOnScreen(boundX, boundY, boundWH, boundWH))
+    if (outOfScreen)
     {
-        // Buff is out of screen.
         _toDespawn.insert(buffDrop.id);
         return;
     }
 
-    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
-
-    buffDrop.x += buffDrop.speedX * (double)deltaTime;
-    buffDrop.y += buffDrop.speedY * (double)deltaTime;
-
     double playerX = player::getXPosition();
     double playerY = player::getYPosition();
     double distance = gfx::distance(buffDrop.x, buffDrop.y, playerX, playerY);
-
-    if (distance < _BUFF_DROP_CHASE_RADIUS)
-    {
-        double change = _BUFF_DROP_CHASE_SPEED * (double)deltaTime;
-
-        if (change > distance) change = distance;
-
-        double dx, dy;
-
-        gfx::direction(buffDrop.x, buffDrop.y, playerX, playerY, &dx, &dy);
-
-        buffDrop.x += dx * change;
-        buffDrop.y += dy * change;
-    }
-
-    distance = gfx::distance(buffDrop.x, buffDrop.y, playerX, playerY);
 
     if (distance < _BUFF_DROP_TRIGGER_RADIUS)
     {
@@ -205,6 +187,43 @@ void _updateBuffDrop(BuffDrop& buffDrop)
         return;
     }
 
+    _updateBuffDropLinearMovement(buffDrop);
+    _updateBuffDropMagneticEffect(buffDrop);
+    _renderBuffDrop(buffDrop);
+}
+
+void _updateBuffDropLinearMovement(BuffDrop& buffDrop)
+{
+    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
+
+    buffDrop.x += buffDrop.speedX * (double)deltaTime;
+    buffDrop.y += buffDrop.speedY * (double)deltaTime;
+}
+
+void _updateBuffDropMagneticEffect(BuffDrop& buffDrop)
+{
+    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
+
+    double playerX = player::getXPosition();
+    double playerY = player::getYPosition();
+    double distance = gfx::distance(buffDrop.x, buffDrop.y, playerX, playerY);
+
+    if (distance > _BUFF_DROP_MAGNETIC_RADIUS) return;
+
+    double change = _BUFF_DROP_CHASE_SPEED * (double)deltaTime;
+
+    if (change > distance) change = distance;
+
+    double dx, dy;
+
+    gfx::direction(buffDrop.x, buffDrop.y, playerX, playerY, &dx, &dy);
+
+    buffDrop.x += dx * change;
+    buffDrop.y += dy * change;
+}
+
+void _renderBuffDrop(BuffDrop& buffDrop)
+{
     unsigned long long start = buffDrop.spawnTime;
     unsigned long long elapsed = game::getTimeElapsedMilliseconds() - start;
 
@@ -222,8 +241,8 @@ void _updateBuffDrop(BuffDrop& buffDrop)
     static pair<double, double> squarePoints[] = {
         {-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
 
-    double vx[4];
-    double vy[4];
+    double polygonX[4];
+    double polygonY[4];
 
     for (int i = 0; i < 4; i++)
     {
@@ -234,11 +253,11 @@ void _updateBuffDrop(BuffDrop& buffDrop)
 
         gfx::rotate(sx, sy, squareRotationX, squareRotationY, &rx, &ry);
 
-        vx[i] = buffDrop.x + rx;
-        vy[i] = buffDrop.y + ry;
+        polygonX[i] = buffDrop.x + rx;
+        polygonY[i] = buffDrop.y + ry;
     }
 
-    gfx::fillPolygon(vx, vy, 4);
+    gfx::fillPolygon(polygonX, polygonY, 4);
 }
 
 void _rollBuff()

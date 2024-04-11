@@ -61,6 +61,7 @@ double _tripleFireRightBulletDirectionY;
 void _spawn(double, double, double, double);
 void _reset();
 void _updateBullet(Bullet& bullet);
+const enemies::Enemy* _findClosestEnemy(double, double);
 
 void init()
 {
@@ -86,14 +87,10 @@ void update()
     _resetDone = false;
 
     for (auto& [id, bullet] : _bullets)
-    {
         _updateBullet(bullet);
-    }
 
     for (unsigned long long id : _toDespawn)
-    {
         _bullets.erase(id);
-    }
 
     _toDespawn.clear();
 
@@ -103,9 +100,7 @@ void update()
     gfx::setDrawColor(c);
 
     for (auto& [id, bullet] : _bullets)
-    {
         gfx::drawLine(bullet.xBase, bullet.yBase, bullet.xTip, bullet.yTip);
-    }
 }
 
 void fire(double x, double y, double xDirection, double yDirection)
@@ -202,9 +197,7 @@ void despawn(unsigned long long id)
 void forEach(std::function<void(const Bullet& bullet)> callback)
 {
     for (auto& [_, bullet] : _bullets)
-    {
         callback(bullet);
-    }
 }
 
 void _reset()
@@ -223,77 +216,66 @@ void _updateBullet(Bullet& bullet)
     double xChange = bullet.xSpeed * deltaTime;
     double yChange = bullet.ySpeed * deltaTime;
 
+    const enemies::Enemy* enemyToFollow = nullptr;
+    bool shouldRotateToEnemy = false;
+    double ex, ey;   // position of enemy to follow
+    double exd, eyd; // direction from bullet to enemy to follow
+    double xd = bullet.xDirection;
+    double yd = bullet.yDirection;
+
     bullet.xBase += xChange;
     bullet.yBase += yChange;
     bullet.xTip += xChange;
     bullet.yTip += yChange;
 
     if (buffs::isActive(FOLLOW_ENEMIES))
+        enemyToFollow = _findClosestEnemy(bullet.xTip, bullet.yTip);
+
+    if (enemyToFollow != nullptr)
     {
-        bool foundEnemy = false;
-        double closestDistance = numeric_limits<double>::max();
-        double ex, ey;
+        ex = enemyToFollow->x;
+        ey = enemyToFollow->y;
 
-        enemies::forEach(
-            [&](const enemies::Enemy& enemy)
-            {
-                foundEnemy = true;
+        gfx::direction(bullet.xBase, bullet.yBase, ex, ey, &exd, &eyd);
 
-                double x = bullet.xTip - enemy.x;
-                double y = bullet.yTip - enemy.y;
-                double distance = x * x + y * y;
+        double difference = abs(xd - exd) + abs(yd - eyd);
 
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    ex = enemy.x;
-                    ey = enemy.y;
-                }
-            });
-
-        if (foundEnemy)
-        {
-            double exd, eyd; // enemy direction
-            double xd = bullet.xDirection;
-            double yd = bullet.yDirection;
-
-            gfx::direction(bullet.xBase, bullet.yBase, ex, ey, &exd, &eyd);
-
-            double difference = abs(xd - exd) + abs(yd - eyd);
-            bool needsToRotate = difference > 0.001;
-
-            if (needsToRotate)
-            {
-                // 🪄 magic (https://stackoverflow.com/a/3461533)
-                bool enemyIsOverLeft = xd * eyd - yd * exd > 0;
-
-                double rotation = enemyIsOverLeft ? -1 : 1;
-                rotation *=
-                    _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND;
-                rotation *= deltaTime;
-
-                gfx::rotate(xd, yd, rotation, &xd, &yd);
-
-                bool enemyWasOverLeft = enemyIsOverLeft;
-                enemyIsOverLeft = xd * eyd - yd * exd > 0;
-
-                bool sideFlipped = enemyWasOverLeft != enemyIsOverLeft;
-
-                if (sideFlipped)
-                {
-                    xd = exd;
-                    yd = eyd;
-                }
-
-                bullet.xDirection = xd;
-                bullet.yDirection = yd;
-                bullet.xSpeed = xd * _BULLET_SPEED;
-                bullet.ySpeed = yd * _BULLET_SPEED;
-                bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
-                bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
-            }
-        }
+        shouldRotateToEnemy = difference > 0.001;
     }
+
+    if (shouldRotateToEnemy)
+    {
+        // 🪄 magic (https://stackoverflow.com/a/3461533)
+        bool enemyIsOverLeft = xd * eyd - yd * exd > 0;
+
+        double rotation = enemyIsOverLeft ? -1 : 1;
+        rotation *= _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND;
+        rotation *= deltaTime;
+
+        gfx::rotate(xd, yd, rotation, &xd, &yd);
+
+        bool enemyWasOverLeft = enemyIsOverLeft;
+        enemyIsOverLeft = xd * eyd - yd * exd > 0;
+
+        bool sideFlipped = enemyWasOverLeft != enemyIsOverLeft;
+
+        if (sideFlipped)
+        {
+            xd = exd;
+            yd = eyd;
+        }
+
+        bullet.xDirection = xd;
+        bullet.yDirection = yd;
+        bullet.xSpeed = xd * _BULLET_SPEED;
+        bullet.ySpeed = yd * _BULLET_SPEED;
+        bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
+        bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
+    }
+
+    bool bouncingBuffActive = buffs::isActive(BOUNCING_BULLETS);
+    bool bouncingHorizontally = false;
+    bool bouncingVertically = false;
 
     if (buffs::isActive(BOUNCING_BULLETS))
     {
@@ -301,29 +283,51 @@ void _updateBullet(Bullet& bullet)
         int w, h;
         SDL_GetWindowSize(win, &w, &h);
 
-        if (bullet.yTip < 0 || bullet.yTip > h)
-        {
-            bullet.yDirection = -bullet.yDirection;
-            bullet.ySpeed = -bullet.ySpeed;
-            bullet.yTip = bullet.yBase + bullet.yDirection * _BULLET_LENGTH;
-        }
-
-        if (bullet.xTip < 0 || bullet.xTip > w)
-        {
-            bullet.xDirection = -bullet.xDirection;
-            bullet.xSpeed = -bullet.xSpeed;
-            bullet.xTip = bullet.xBase + bullet.xDirection * _BULLET_LENGTH;
-        }
-
-        return;
+        bouncingHorizontally = bullet.xTip < 0 || bullet.xTip > w;
+        bouncingVertically = bullet.yTip < 0 || bullet.yTip > h;
     }
 
-    bool shouldDespawn = !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
-
-    if (shouldDespawn)
+    if (bouncingHorizontally)
     {
-        _toDespawn.insert(bullet.id);
+        bullet.xDirection = -bullet.xDirection;
+        bullet.xSpeed = -bullet.xSpeed;
+        bullet.xTip = bullet.xBase + bullet.xDirection * _BULLET_LENGTH;
     }
+
+    if (bouncingVertically)
+    {
+        bullet.yDirection = -bullet.yDirection;
+        bullet.ySpeed = -bullet.ySpeed;
+        bullet.yTip = bullet.yBase + bullet.yDirection * _BULLET_LENGTH;
+    }
+
+    bool shouldDespawn =
+        !bouncingBuffActive && !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
+
+    if (shouldDespawn) _toDespawn.insert(bullet.id);
+}
+
+// Returns nullptr if no enemies are present.
+const enemies::Enemy* _findClosestEnemy(double x, double y)
+{
+    const enemies::Enemy* closestEnemy = nullptr;
+    double closestDistance = numeric_limits<double>::max();
+
+    enemies::forEach(
+        [&](const enemies::Enemy& enemy)
+        {
+            double dx = x - enemy.x;
+            double dy = y - enemy.y;
+            double distance = dx * dx + dy * dy;
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestEnemy = &enemy;
+            }
+        });
+
+    return closestEnemy;
 }
 
 } // namespace smocc::bullets

@@ -63,11 +63,33 @@ unsigned long long _nextID;
 
 unordered_map<unsigned long long, Enemy> _enemies;
 
+enum SpawningEdge
+{
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
+};
+
 void _spawnEnemy();
+SpawningEdge _rollSpawningEdge();
+void _initEnemyPosition(Enemy&, SpawningEdge);
+void _initEnemySpeed(Enemy&);
+void _initEnemyRotation(Enemy&, SpawningEdge);
+void _initEnemyHealth(Enemy&);
+void _destroyEnemy(Enemy&);
 void _rollEnemySpawn();
 void _reset();
 unsigned long long _getSpawnRollsToDo();
 void _doNecessarySpawnRolls();
+void _updateEnemy(Enemy&);
+void _updateEnemyRadius(Enemy&);
+void _updateEnemyPosition(Enemy&);
+void _checkPlayerCollision(Enemy&);
+void _checkScreenEdgesCollision(Enemy&);
+void _checkEnemyEnemyCollision(Enemy&, const Enemy&);
+void _checkBulletCollision(Enemy&, const bullets::Bullet&);
+void _pushEnemy(Enemy&, double, double);
 
 void init()
 {
@@ -83,200 +105,31 @@ void update()
     }
 
     _resetDone = false;
-
-    double difficulty = game::getDifficulty();
-
-    _maxEnemies = _MAX_ENEMY_COUNT * difficulty;
+    _maxEnemies = _MAX_ENEMY_COUNT * game::getDifficulty();
 
     _doNecessarySpawnRolls();
-
-    SDL_Window* window = smocc::getWindow();
-    int windowWidth, windowHeight;
-
-    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
-
-    unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
 
     vector<Enemy> toRemove;
 
     for (auto& [_, enemy] : _enemies)
-    {
         if (enemy.health <= 0) toRemove.push_back(enemy);
-    }
 
     for (Enemy& enemy : toRemove)
+        _destroyEnemy(enemy);
+
+    for (auto& [_, enemy] : _enemies)
     {
-        _enemies.erase(enemy.id);
-        double buffXSpeed = enemy.xSpeed * _DROPPED_BUFF_RELATIVE_SPEED;
-        double buffYSpeed = enemy.ySpeed * _DROPPED_BUFF_RELATIVE_SPEED;
+        _updateEnemy(enemy);
 
-        if (buffs::isActive(PUSH_ENEMIES))
-        {
-            // Invert direction of the spawning buff because otherwise it
-            // will most likely go off map when the buff for pushing enemies
-            // is active.
-            buffXSpeed *= -1;
-            buffYSpeed *= -1;
-        }
-
-        buffs::rollSpawn(enemy.x, enemy.y, buffXSpeed, buffYSpeed);
-        game::incrementScore();
+        // Terminate if enemy caused the game to end.
+        if (!game::isRunning()) return;
     }
-
-    for (auto& [id, _] : _enemies)
-    {
-        Enemy& enemy = _enemies[id];
-
-        const double radiusRange = _MAX_ENEMY_RADIUS - _MIN_ENEMY_RADIUS;
-        double radiusFactor = enemy.health / _MAX_ENEMY_HEALTH;
-        double targetRadius = _MIN_ENEMY_RADIUS + radiusRange * radiusFactor;
-        double radiusChange =
-            _ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTimeMilliseconds;
-
-        if (enemy.radius < targetRadius)
-        {
-            enemy.radius = min(enemy.radius + radiusChange, targetRadius);
-        }
-
-        if (enemy.radius > targetRadius)
-        {
-            enemy.radius = max(enemy.radius - radiusChange, targetRadius);
-        }
-
-        double x = enemy.x;
-        double y = enemy.y;
-        double radius = enemy.radius;
-        double playerX = player::getXPosition();
-        double playerY = player::getYPosition();
-        double playerRadius = player::PLAYER_CIRCLE_RADIUS;
-
-        if (gfx::circlesOverlap(x, y, radius, playerX, playerY, playerRadius))
-        {
-            game::end();
-            ui::showGameOver();
-            return;
-        }
-
-        if (!gfx::pointInRect(x, y, 0, 0, windowWidth, windowHeight))
-        {
-            double targetX = player::getXPosition();
-            double targetY = player::getYPosition();
-
-            double xDirection, yDirection;
-
-            gfx::direction(x, y, targetX, targetY, &xDirection, &yDirection);
-
-            enemy.xSpeed = xDirection * enemy.speed;
-            enemy.ySpeed = yDirection * enemy.speed;
-        }
-
-        for (auto& [_, otherEnemy] : _enemies)
-        {
-            if (enemy.id == otherEnemy.id) continue;
-
-            double otherX = otherEnemy.x;
-            double otherY = otherEnemy.y;
-            double otherRadius = otherEnemy.radius;
-
-            bool collision =
-                gfx::circlesOverlap(x, y, radius, otherX, otherY, otherRadius);
-
-            if (!collision) continue;
-
-            double xDirection, yDirection;
-
-            gfx::direction(x, y, otherX, otherY, &xDirection, &yDirection);
-
-            enemy.xSpeed = -xDirection * enemy.speed;
-            enemy.ySpeed = -yDirection * enemy.speed;
-        }
-
-        double speedFactor = 1.0;
-
-        if (buffs::isActive(SLOW_ENEMIES))
-            speedFactor = _SLOW_ENEMIES_BUFF_FACTOR;
-
-        enemy.x += speedFactor * enemy.xSpeed * deltaTimeMilliseconds;
-        enemy.y += speedFactor * enemy.ySpeed * deltaTimeMilliseconds;
-    }
-
-    bullets::forEach(
-        [&](const bullets::Bullet& bullet)
-        {
-            if (bullet.despawning) return;
-
-            for (auto& [_, enemy] : _enemies)
-            {
-                double ex = enemy.x;
-                double ey = enemy.y;
-                double er = enemy.radius;
-
-                double bx = bullet.xTip;
-                double by = bullet.yTip;
-
-                bool collision = gfx::pointInCircle(bx, by, ex, ey, er);
-
-                if (collision)
-                {
-                    enemy.health -= bullets::BULLET_DAMAGE;
-
-                    if (buffs::isActive(DOUBLE_DAMAGE))
-                        enemy.health -= bullets::BULLET_DAMAGE;
-
-                    if (buffs::isActive(PUSH_ENEMIES))
-                    {
-                        double effect = _PUSH_ENEMIES_BUFF_FACTOR;
-
-                        double healthRange =
-                            _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
-                        double healthFactor =
-                            (enemy.health - _MIN_ENEMY_HEALTH) / healthRange;
-
-                        double maxHealthEffect =
-                            _PUSH_ENEMIES_EFFECT_AT_MIN_HEALTH;
-                        double minHealthEffect =
-                            _PUSH_ENEMIES_EFFECT_AT_MAX_HEALTH;
-                        double healthEffectRange =
-                            maxHealthEffect - minHealthEffect;
-
-                        double healthEffect =
-                            minHealthEffect +
-                            (1 - healthFactor) * healthEffectRange;
-
-                        effect *= healthEffect;
-
-                        enemy.xSpeed += bullet.xDirection * effect;
-                        enemy.ySpeed += bullet.yDirection * effect;
-                        enemy.speed =
-                            gfx::magnitude(enemy.xSpeed, enemy.ySpeed);
-
-                        if (enemy.speed > _MAX_ENEMY_PUSHED_SPEED)
-                        {
-                            double x, y;
-
-                            gfx::unit(enemy.xSpeed, enemy.ySpeed, &x, &y);
-
-                            enemy.xSpeed = x * _MAX_ENEMY_PUSHED_SPEED;
-                            enemy.ySpeed = y * _MAX_ENEMY_PUSHED_SPEED;
-                            enemy.speed = _MAX_ENEMY_PUSHED_SPEED;
-                        }
-                    }
-
-                    explosions::spawn(bx, by);
-                    bullets::despawn(bullet.id);
-
-                    return;
-                }
-            }
-        });
 
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
     gfx::setDrawColor(&_ENEMY_COLOR);
 
     for (auto& [_, enemy] : _enemies)
-    {
         gfx::fillCircle(enemy.x, enemy.y, enemy.radius);
-    }
 }
 
 void forEach(function<void(const Enemy& enemy)> callback)
@@ -314,10 +167,7 @@ void _rollEnemySpawn()
 {
     int enemiesCount = _enemies.size();
 
-    if (enemiesCount < _MIN_ENEMY_COUNT)
-    {
-        _spawnEnemy();
-    }
+    if (enemiesCount < _MIN_ENEMY_COUNT) _spawnEnemy();
 
     if (enemiesCount >= _MIN_ENEMY_COUNT && enemiesCount < _maxEnemies)
     {
@@ -337,13 +187,27 @@ void _spawnEnemy()
     enemy.id = _nextID++;
     enemy.radius = 0;
 
-    double edgeRoll = rng::roll();
+    SpawningEdge spawningEdge = _rollSpawningEdge();
+    _initEnemyPosition(enemy, spawningEdge);
+    _initEnemyHealth(enemy);
+    _initEnemySpeed(enemy);
+    _initEnemyRotation(enemy, spawningEdge);
 
-    bool spawningLeft = edgeRoll <= .25;
-    bool spawningRight = edgeRoll > .25 && edgeRoll <= .5;
-    bool spawningTop = edgeRoll > .5 && edgeRoll <= .75;
-    bool spawningBottom = edgeRoll > .75;
+    _enemies[enemy.id] = enemy;
+}
 
+SpawningEdge _rollSpawningEdge()
+{
+    double roll = rng::rollInt(0, 3);
+
+    if (roll == 0) return LEFT;
+    if (roll == 1) return RIGHT;
+    if (roll == 2) return TOP;
+    return BOTTOM;
+}
+
+void _initEnemyPosition(Enemy& enemy, SpawningEdge spawningEdge)
+{
     double locationRoll = rng::roll();
 
     SDL_Window* window = smocc::getWindow();
@@ -351,64 +215,235 @@ void _spawnEnemy()
 
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    if (spawningLeft)
+    if (spawningEdge == LEFT)
     {
         enemy.x = 0;
         enemy.y = locationRoll * windowHeight;
     }
 
-    if (spawningRight)
+    if (spawningEdge == RIGHT)
     {
         enemy.x = windowWidth;
         enemy.y = locationRoll * windowHeight;
     }
 
-    if (spawningTop)
+    if (spawningEdge == TOP)
     {
         enemy.x = locationRoll * windowWidth;
         enemy.y = 0;
     }
 
-    if (spawningBottom)
+    if (spawningEdge == BOTTOM)
     {
         enemy.x = locationRoll * windowWidth;
         enemy.y = windowHeight;
     }
+}
 
-    double healthRoll = rng::roll();
+void _initEnemySpeed(Enemy& enemy)
+{
+    enemy.speed = lerp(_MIN_ENEMY_SPEED, _MAX_ENEMY_SPEED, rng::roll());
+}
+
+void _initEnemyRotation(Enemy& enemy, SpawningEdge spawningEdge)
+{
+    double rotationRadians = M_PI * rng::roll();
+
+    if (spawningEdge == LEFT) rotationRadians -= M_PI / 2;
+    if (spawningEdge == RIGHT) rotationRadians += M_PI / 2;
+    if (spawningEdge == TOP) rotationRadians += M_PI;
+
+    enemy.xSpeed = enemy.speed * cos(rotationRadians);
+    enemy.ySpeed = enemy.speed * -sin(rotationRadians);
+}
+
+void _initEnemyHealth(Enemy& enemy)
+{
+    double min = _MIN_ENEMY_HEALTH;
+    double max = _MAX_ENEMY_HEALTH;
     double difficulty = game::getDifficulty();
-    const double healthRange = _MAX_ENEMY_HEALTH - _MIN_ENEMY_HEALTH;
-    int healthAddendum = round(healthRange * healthRoll * difficulty);
 
-    enemy.health = _MIN_ENEMY_HEALTH + healthAddendum;
+    enemy.health = round(lerp(min, max, rng::roll() * difficulty));
+}
 
-    double speedRoll = rng::roll();
-    const double speedRange = _MAX_ENEMY_SPEED - _MIN_ENEMY_SPEED;
-    double speed = _MIN_ENEMY_SPEED + speedRange * speedRoll;
+void _destroyEnemy(Enemy& enemy)
+{
+    double buffXSpeed = enemy.xSpeed * _DROPPED_BUFF_RELATIVE_SPEED;
+    double buffYSpeed = enemy.ySpeed * _DROPPED_BUFF_RELATIVE_SPEED;
 
-    double rotationRoll = rng::roll();
-    double rotationRadians = M_PI * rotationRoll;
-
-    if (spawningLeft)
+    if (buffs::isActive(PUSH_ENEMIES))
     {
-        rotationRadians -= M_PI / 2;
+        // Invert direction of the spawning buff because otherwise it will most
+        // likely go off map when the buff for pushing enemies is active.
+        buffXSpeed *= -1;
+        buffYSpeed *= -1;
     }
 
-    if (spawningRight)
+    _enemies.erase(enemy.id);
+    buffs::rollSpawn(enemy.x, enemy.y, buffXSpeed, buffYSpeed);
+    game::incrementScore();
+}
+
+void _updateEnemy(Enemy& enemy)
+{
+    _checkPlayerCollision(enemy);
+
+    // Terminate if game ended due to player collision.
+    if (!game::isRunning()) return;
+
+    _checkScreenEdgesCollision(enemy);
+
+    for (auto& [_, otherEnemy] : _enemies)
+        if (enemy.id != otherEnemy.id)
+            _checkEnemyEnemyCollision(enemy, otherEnemy);
+
+    bullets::forEach([&](auto b) { _checkBulletCollision(enemy, b); });
+
+    _updateEnemyRadius(enemy);
+    _updateEnemyPosition(enemy);
+}
+
+void _updateEnemyRadius(Enemy& enemy)
+{
+    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
+    double t = enemy.health / _MAX_ENEMY_HEALTH;
+    double targetRadius = lerp(_MIN_ENEMY_RADIUS, _MAX_ENEMY_RADIUS, t);
+    double radiusChange = _ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTime;
+
+    if (enemy.radius < targetRadius)
+        enemy.radius = min(enemy.radius + radiusChange, targetRadius);
+
+    if (enemy.radius > targetRadius)
+        enemy.radius = max(enemy.radius - radiusChange, targetRadius);
+}
+
+void _updateEnemyPosition(Enemy& enemy)
+{
+    unsigned int deltaTime = game::getDeltaTimeMilliseconds();
+    double speedFactor = 1.0;
+
+    if (buffs::isActive(SLOW_ENEMIES)) speedFactor = _SLOW_ENEMIES_BUFF_FACTOR;
+
+    enemy.x += speedFactor * enemy.xSpeed * deltaTime;
+    enemy.y += speedFactor * enemy.ySpeed * deltaTime;
+}
+
+void _checkPlayerCollision(Enemy& enemy)
+{
+    double x = enemy.x;
+    double y = enemy.y;
+    double r = enemy.radius;
+    double px = player::getXPosition();
+    double py = player::getYPosition();
+    double pr = player::PLAYER_CIRCLE_RADIUS;
+
+    bool collision = gfx::circlesOverlap(x, y, r, px, py, pr);
+
+    if (collision)
     {
-        rotationRadians += M_PI / 2;
+        game::end();
+        ui::showGameOver();
     }
+}
 
-    if (spawningTop)
+void _checkScreenEdgesCollision(Enemy& enemy)
+{
+    double x = enemy.x;
+    double y = enemy.y;
+
+    double collision = !gfx::pointOnScreen(x, y);
+
+    if (collision)
     {
-        rotationRadians += M_PI;
+        double targetX = player::getXPosition();
+        double targetY = player::getYPosition();
+
+        double xDirection, yDirection;
+
+        gfx::direction(x, y, targetX, targetY, &xDirection, &yDirection);
+
+        enemy.xSpeed = xDirection * enemy.speed;
+        enemy.ySpeed = yDirection * enemy.speed;
     }
+}
 
-    enemy.speed = speed;
-    enemy.xSpeed = speed * cos(rotationRadians);
-    enemy.ySpeed = -speed * sin(rotationRadians);
+void _checkEnemyEnemyCollision(Enemy& enemy, const Enemy& otherEnemy)
+{
+    double x = enemy.x;
+    double y = enemy.y;
+    double r = enemy.radius;
+    double xx = otherEnemy.x;
+    double yy = otherEnemy.y;
+    double rr = otherEnemy.radius;
 
-    _enemies[enemy.id] = enemy;
+    bool collision = gfx::circlesOverlap(x, y, r, xx, yy, rr);
+
+    if (collision)
+    {
+        double xDirection, yDirection;
+
+        gfx::direction(x, y, xx, yy, &xDirection, &yDirection);
+
+        enemy.xSpeed = -xDirection * enemy.speed;
+        enemy.ySpeed = -yDirection * enemy.speed;
+    }
+}
+
+void _checkBulletCollision(Enemy& enemy, const bullets::Bullet& bullet)
+{
+    if (bullet.despawning) return;
+
+    double ex = enemy.x;
+    double ey = enemy.y;
+    double er = enemy.radius;
+    double bx = bullet.xTip;
+    double by = bullet.yTip;
+
+    bool collision = gfx::pointInCircle(bx, by, ex, ey, er);
+
+    if (collision)
+    {
+        enemy.health -= bullets::BULLET_DAMAGE;
+
+        if (buffs::isActive(DOUBLE_DAMAGE))
+            enemy.health -= bullets::BULLET_DAMAGE;
+
+        if (buffs::isActive(PUSH_ENEMIES))
+            _pushEnemy(enemy, bullet.xDirection, bullet.yDirection);
+
+        explosions::spawn(bx, by);
+        bullets::despawn(bullet.id);
+    }
+}
+
+void _pushEnemy(enemies::Enemy& enemy, double xAmount, double yAmount)
+{
+    double strength = _PUSH_ENEMIES_BUFF_FACTOR;
+
+    // More health reduces the strength of the push.
+
+    double h = enemy.health;
+    double t = 1 - gfx::inverseLerp(_MIN_ENEMY_HEALTH, _MAX_ENEMY_HEALTH, h);
+    double maxHealthEffect = _PUSH_ENEMIES_EFFECT_AT_MIN_HEALTH;
+    double minHealthEffect = _PUSH_ENEMIES_EFFECT_AT_MAX_HEALTH;
+    double healthEffect = lerp(minHealthEffect, maxHealthEffect, t);
+
+    strength *= healthEffect;
+
+    enemy.xSpeed += xAmount * strength;
+    enemy.ySpeed += yAmount * strength;
+    enemy.speed = gfx::magnitude(enemy.xSpeed, enemy.ySpeed);
+
+    if (enemy.speed > _MAX_ENEMY_PUSHED_SPEED)
+    {
+        double xDirection, yDirection;
+
+        gfx::unit(enemy.xSpeed, enemy.ySpeed, &xDirection, &yDirection);
+
+        enemy.xSpeed = xDirection * _MAX_ENEMY_PUSHED_SPEED;
+        enemy.ySpeed = yDirection * _MAX_ENEMY_PUSHED_SPEED;
+        enemy.speed = _MAX_ENEMY_PUSHED_SPEED;
+    }
 }
 
 } // namespace smocc::enemies

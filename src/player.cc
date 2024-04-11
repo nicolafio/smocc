@@ -60,10 +60,7 @@ void spawn()
 
 void update()
 {
-    if (!_spawned)
-    {
-        return;
-    }
+    if (!_spawned) return;
 
     if (!game::isRunning())
     {
@@ -76,24 +73,16 @@ void update()
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP])
-    {
         _yPosition -= _PLAYER_SPEED * deltaTimeMilliseconds;
-    }
 
     if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN])
-    {
         _yPosition += _PLAYER_SPEED * deltaTimeMilliseconds;
-    }
 
     if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT])
-    {
         _xPosition -= _PLAYER_SPEED * deltaTimeMilliseconds;
-    }
 
     if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT])
-    {
         _xPosition += _PLAYER_SPEED * deltaTimeMilliseconds;
-    }
 
     SDL_Window* window = smocc::getWindow();
 

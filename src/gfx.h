@@ -20,6 +20,7 @@ namespace smocc::gfx
 
 SDL_Cursor* systemCursor(SDL_SystemCursor cursor);
 
+double inverseLerp(double a, double b, double value);
 double distance(double x1, double y1, double x2, double y2);
 double magnitude(double x1, double x2);
 
