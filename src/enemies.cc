@@ -242,7 +242,9 @@ void _initEnemyPosition(Enemy& enemy, SpawningEdge spawningEdge)
 
 void _initEnemySpeed(Enemy& enemy)
 {
-    enemy.speed = lerp(_MIN_ENEMY_SPEED, _MAX_ENEMY_SPEED, rng::roll());
+    double speed = lerp(_MIN_ENEMY_SPEED, _MAX_ENEMY_SPEED, rng::roll());
+    enemy.initialSpeed = speed;
+    enemy.speed = speed;
 }
 
 void _initEnemyRotation(Enemy& enemy, SpawningEdge spawningEdge)
@@ -362,6 +364,7 @@ void _checkScreenEdgesCollision(Enemy& enemy)
 
         gfx::direction(x, y, targetX, targetY, &xDirection, &yDirection);
 
+        enemy.speed = enemy.initialSpeed;
         enemy.xSpeed = xDirection * enemy.speed;
         enemy.ySpeed = yDirection * enemy.speed;
     }

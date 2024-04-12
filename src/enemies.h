@@ -24,6 +24,7 @@ struct Enemy
     double y;
     double radius;
     double speed;
+    double initialSpeed;
     double xSpeed;
     double ySpeed;
 };
