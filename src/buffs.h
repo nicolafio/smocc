@@ -14,6 +14,8 @@ Public License 3.0.
 namespace smocc::buffs
 {
 
+static double BUFF_DURATION_MILLISECONDS = 10000;
+
 enum BuffType
 {
     FOLLOW_ENEMIES,

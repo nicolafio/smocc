@@ -31,8 +31,6 @@ using namespace smocc;
 namespace smocc::buffs
 {
 
-static double _BUFF_DURATION_MILLISECONDS = 10000;
-
 static double _BUFF_DROP_OPACITY = 0.7;
 static double _BUFF_DROP_SPAWN_CHANCE = 0.15;
 static double _BUFF_DROP_CHASE_SPEED = 0.2;
@@ -264,7 +262,7 @@ void _rollBuff()
 {
     BuffType type = BUFF_TYPES[rng::rollInt(0, BUFF_TYPES_COUNT - 1)];
 
-    _timeLeftMilliseconds[type] += _BUFF_DURATION_MILLISECONDS;
+    _timeLeftMilliseconds[type] += BUFF_DURATION_MILLISECONDS;
 
     cout << "Applied buff: " << getTitle(type) << endl;
 }

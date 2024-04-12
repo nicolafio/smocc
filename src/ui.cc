@@ -13,6 +13,7 @@ Public License 3.0.
 #include <iostream>
 #include <string>
 
+#include "buffs.h"
 #include "colors.h"
 #include "game.h"
 #include "gfx.h"
@@ -48,6 +49,9 @@ const int _GAME_OVER_TEXT_MARGIN_PIXELS = 20;
 
 const int _SCORE_RECORD_TEXT_MARGIN_PIXELS = 20;
 
+const int _BUFF_TIME_BAR_THICKNESS_PIXELS = 3;
+const int _BUFF_TIME_BAR_WIDTH_PIXELS_PER_SECOND = 30;
+
 const char* _SCORE_TEXT = "Score: ";
 const char* _RECORD_TEXT = "Record: ";
 
@@ -60,6 +64,7 @@ const char* _BACK_TO_MAIN_TEXT = "Back to main menu";
 
 using namespace std;
 using namespace smocc;
+using enum buffs::BuffType;
 namespace fs = std::filesystem;
 
 SDL_Cursor* _arrowCursor;
@@ -74,6 +79,8 @@ SDL_Color _BG_COLOR = SMOCC_BACKGROUND_COLOR;
 
 SDL_Color _BTN_BORDER_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
                                _MENU_BTN_BORDER_OPACITY};
+
+SDL_Color _BUFF_TIME_BAR_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b, 85};
 
 SDL_Texture* _title;
 SDL_Texture* _playText;
@@ -90,12 +97,15 @@ SDL_Texture* _tryAgainText;
 SDL_Texture* _tryAgainHoverText;
 SDL_Texture* _backToMainText;
 SDL_Texture* _backToMainHoverText;
+SDL_Texture* _buffText[buffs::BUFF_TYPES_COUNT];
 
 SDL_Rect _uiRect;
 
 int _titleWidth, _titleHeight;
 int _gameOverViewHeight;
 int _gameOverTextWidth, _gameOverTextHeight;
+int _buffTextWidth[buffs::BUFF_TYPES_COUNT];
+int _buffTextHeight[buffs::BUFF_TYPES_COUNT];
 
 bool _scoreVisible;
 bool _mainMenuVisible;
@@ -107,6 +117,7 @@ int _lastScore;
 int _lastRecord;
 
 void _updateScoreAndRecord();
+void _updateBuffTimeBars();
 void _updateMainMenu();
 void _updateGameOver();
 
@@ -156,6 +167,14 @@ void init(int argc, char* argv[])
     _backToMainText = gfx::text(_font, _BACK_TO_MAIN_TEXT, _FG_COLOR);
     _backToMainHoverText = gfx::text(_font, _BACK_TO_MAIN_TEXT, _BG_COLOR);
 
+    for (buffs::BuffType type : buffs::BUFF_TYPES)
+    {
+        char* title = buffs::getTitle(type);
+        _buffText[type] = gfx::text(_font, title, _FG_COLOR);
+        _buffTextWidth[type] = gfx::textureWidth(_buffText[type]);
+        _buffTextHeight[type] = gfx::textureHeight(_buffText[type]);
+    }
+
     SDL_QueryTexture(_title, NULL, NULL, &_titleWidth, &_titleHeight);
 
     SDL_QueryTexture(_gameOverText, NULL, NULL, &_gameOverTextWidth,
@@ -195,6 +214,7 @@ void update()
     _pressingLeftMouseButton = mouseState & SDL_BUTTON(SDL_BUTTON_LEFT);
 
     _updateScoreAndRecord();
+    _updateBuffTimeBars();
     _updateMainMenu();
     _updateGameOver();
 
@@ -265,6 +285,63 @@ void _updateScoreAndRecord()
     gfx::renderTexture(_scoreNumber, &scoreNumberRect);
     gfx::renderTexture(_recordText, &recordTextRect);
     gfx::renderTexture(_recordNumber, &recordNumberRect);
+}
+
+void _updateBuffTimeBars()
+{
+    if (!game::isRunning()) return;
+
+    vector<buffs::BuffType> active;
+
+    unsigned int totalHeight = 0;
+
+    for (buffs::BuffType type : buffs::BUFF_TYPES)
+        if (buffs::isActive(type))
+        {
+            active.push_back(type);
+            totalHeight += _buffTextHeight[type];
+            totalHeight += _BUFF_TIME_BAR_THICKNESS_PIXELS;
+        }
+
+    int count = active.size();
+    SDL_Rect textRect[count];
+    SDL_Rect barRect[count];
+
+    for (int i = 0; i < count; i++)
+    {
+        textRect[i].w = _buffTextWidth[active[i]];
+        textRect[i].h = _buffTextHeight[active[i]];
+        textRect[i].x = _uiRect.x;
+    }
+
+    textRect[0].y = _uiRect.y + _uiRect.h - totalHeight;
+
+    for (int i = 1; i < count; i++)
+    {
+        int prevY = textRect[i - 1].y;
+        int prevH = textRect[i - 1].h;
+        textRect[i].y = prevY + prevH + _BUFF_TIME_BAR_THICKNESS_PIXELS;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        unsigned int timeMillis = buffs::getTimeLeftMilliseconds(active[i]);
+        double timeSeconds = timeMillis / 1000.0;
+
+        barRect[i].w = timeSeconds * _BUFF_TIME_BAR_WIDTH_PIXELS_PER_SECOND;
+        barRect[i].h = _BUFF_TIME_BAR_THICKNESS_PIXELS;
+        barRect[i].x = _uiRect.x;
+        barRect[i].y = textRect[i].y + textRect[i].h;
+    }
+
+    gfx::setDrawColor(&_BUFF_TIME_BAR_COLOR);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+
+    for (int i = 0; i < count; i++)
+    {
+        gfx::renderTexture(_buffText[active[i]], &textRect[i]);
+        gfx::fillRect(&barRect[i]);
+    }
 }
 
 void _updateMainMenu()
