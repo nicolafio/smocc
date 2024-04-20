@@ -11,11 +11,20 @@ Public License 3.0.
 
 #pragma once
 
+#include <SDL.h>
+
 namespace smocc::ui
 {
 
+enum PointerStyle
+{
+    ARROW,
+    HAND
+};
+
 void init(int, char**);
 void update();
-void showGameOver();
+void setPointerStyle(PointerStyle);
+SDL_Rect rect();
 
 } // namespace smocc::ui

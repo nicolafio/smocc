@@ -27,7 +27,7 @@ Public License 3.0.
 #include "player.h"
 #include "rng.h"
 #include "smocc.h"
-#include "ui.h"
+#include "ui/game_over.h"
 
 using namespace std;
 using namespace smocc;
@@ -344,7 +344,7 @@ void _checkPlayerCollision(Enemy& enemy)
     if (collision)
     {
         game::end();
-        ui::showGameOver();
+        ui::game_over::show();
     }
 }
 
