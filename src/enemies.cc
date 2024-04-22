@@ -30,11 +30,11 @@ Public License 3.0.
 #include "ui/game_over.h"
 
 using namespace std;
-using namespace smocc;
-using enum buffs::BuffType;
 
 namespace smocc::enemies
 {
+
+using enum buffs::BuffType;
 
 const int _SPAWN_DELAY_MILLISECONDS = 500;
 const double _MIN_ENEMY_HEALTH = 1.0;

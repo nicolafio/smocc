@@ -15,14 +15,13 @@ Public License 3.0.
 #include "../smocc.h"
 #include "../ui.h"
 
-using namespace smocc;
-
 namespace smocc::ui::menu_btn
 {
 
 SDL_Color _FG_COLOR = SMOCC_FOREGROUND_COLOR;
-SDL_Color _BORDER_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
-                           BORDER_OPACITY};
+SDL_Color _BORDER_COLOR = {
+    _FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b, BORDER_OPACITY
+};
 
 SDL_Rect rect(SDL_Texture* text, int yPosition)
 {
@@ -46,7 +45,7 @@ void draw(SDL_Rect* rect, SDL_Texture* text, SDL_Texture* textHover)
     SDL_Rect textRect = gfx::textureSize(text);
 
     textRect.x = rect->x + (rect->w - textRect.w) / 2;
-    textRect.y = rect->y + PADDING_PIXELS;
+    textRect.y = rect->y + (rect->h - textRect.h) / 2;
 
     gfx::setDrawColor(&_BORDER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);

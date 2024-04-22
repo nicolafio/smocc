@@ -21,7 +21,6 @@ Public License 3.0.
 #include "text.h"
 
 using namespace std;
-using namespace smocc::ui;
 namespace fs = std::filesystem;
 
 namespace smocc::ui::text
@@ -64,45 +63,44 @@ void init(int argc, char* argv[])
     _boldFontPath = _programDir / _BOLD_FONT_RELATIVE_PATH;
 }
 
-SDL_Texture* get(const char* text, unsigned int fontSize, SDL_Color color,
-                 FontStyle style)
+SDL_Texture* get(const char* str, unsigned int size, SDL_Color c, FontStyle st)
 {
-    auto k1 = static_cast<int>(style);
-    auto k2 = _colorToInt(color);
-    auto k3 = fontSize;
-    auto k4 = string(text);
+    auto k1 = static_cast<int>(st);
+    auto k2 = _colorToInt(c);
+    auto k3 = size;
+    auto k4 = string(str);
 
     if (!_textMemo.contains(k1)) _textMemo[k1] = _textMemoL3();
     if (!_textMemo[k1].contains(k2)) _textMemo[k1][k2] = _textMemoL2();
     if (!_textMemo[k1][k2].contains(k3)) _textMemo[k1][k2][k3] = _textMemoL1();
     if (_textMemo[k1][k2][k3].contains(k4)) return _textMemo[k1][k2][k3][k4];
 
-    TTF_Font* font = _getFont(style, fontSize);
-    SDL_Texture* texture = gfx::text(font, text, color);
+    TTF_Font* font = _getFont(st, size);
+    SDL_Texture* texture = gfx::text(font, str, c);
 
     _textMemo[k1][k2][k3][k4] = texture;
 
     return texture;
 }
 
-SDL_Texture* get(const char* text)
+SDL_Texture* get(const char* str)
 {
-    return get(text, REGULAR_FONT_SIZE_PIXELS, _FG_COLOR, REGULAR);
+    return get(str, REGULAR_FONT_SIZE_PIXELS, _FG_COLOR, REGULAR);
 }
 
-SDL_Texture* get(const char* text, unsigned int fontSize)
+SDL_Texture* get(const char* str, unsigned int fontSize)
 {
-    return get(text, fontSize, _FG_COLOR, REGULAR);
+    return get(str, fontSize, _FG_COLOR, REGULAR);
 }
 
-SDL_Texture* get(const char* text, SDL_Color color)
+SDL_Texture* get(const char* str, SDL_Color color)
 {
-    return get(text, REGULAR_FONT_SIZE_PIXELS, color, REGULAR);
+    return get(str, REGULAR_FONT_SIZE_PIXELS, color, REGULAR);
 }
 
-SDL_Texture* get(const char* text, FontStyle style)
+SDL_Texture* get(const char* str, FontStyle style)
 {
-    return get(text, REGULAR_FONT_SIZE_PIXELS, _FG_COLOR, style);
+    return get(str, REGULAR_FONT_SIZE_PIXELS, _FG_COLOR, style);
 }
 
 SDL_Texture* get(unsigned int number)

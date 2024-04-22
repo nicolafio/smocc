@@ -9,21 +9,21 @@ Public License 3.0.
 
 */
 
+#include <cmath>
+#include <iostream>
+
+#include <SDL.h>
+
 #include "game.h"
 #include "player.h"
 
-#include <SDL.h>
-#include <iostream>
-
 using namespace std;
-using namespace smocc;
 
 namespace smocc::game
 {
 
 const double _MIN_DIFFICULTY = 0.1;
 const double _MAX_DIFFICULTY = 1.0;
-const double _DIFFICULTY_RANGE = _MAX_DIFFICULTY - _MIN_DIFFICULTY;
 const int _SCORE_INCREMENT = 100;
 
 bool _gameRunning;
@@ -57,15 +57,9 @@ void begin()
 
 void update()
 {
-    if (!_gameRunning)
-    {
-        return;
-    }
+    if (!_gameRunning) return;
 
-    if (_score > _record)
-    {
-        _record = _score;
-    }
+    if (_score > _record) _record = _score;
 
     unsigned long long currentTime = SDL_GetTicks64();
 
@@ -75,7 +69,7 @@ void update()
 
     double difficultyFactor = 1.0 - (1.0 / (1.0 + (double)_score / 3000.0));
 
-    _difficulty = _MIN_DIFFICULTY + _DIFFICULTY_RANGE * difficultyFactor;
+    _difficulty = lerp(_MIN_DIFFICULTY, _MAX_DIFFICULTY, difficultyFactor);
 }
 
 void end()

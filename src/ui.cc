@@ -33,17 +33,11 @@ SDL_Rect _uiRect;
 
 PointerStyle _pointerStyle;
 
-void init(int argc, char* argv[])
+void init()
 {
     _arrowCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_ARROW);
     _handCursor = gfx::systemCursor(SDL_SYSTEM_CURSOR_HAND);
     _pointerStyle = PointerStyle::ARROW;
-
-    ui::text::init(argc, argv);
-    ui::main_menu::init();
-    ui::game_over::init();
-    ui::score_record::init();
-    ui::buffs::init();
 }
 
 void update()
@@ -60,11 +54,6 @@ void update()
     _uiRect.h = windowRect.h * _UI_HEIGHT_PERCENTAGE / 100;
     _uiRect.x = (windowRect.w - _uiRect.w) / 2;
     _uiRect.y = (windowRect.h - _uiRect.h) / 2;
-
-    smocc::ui::main_menu::update();
-    smocc::ui::game_over::update();
-    smocc::ui::score_record::update();
-    smocc::ui::buffs::update();
 
     if (_pointerStyle == ARROW) SDL_SetCursor(_arrowCursor);
     if (_pointerStyle == HAND) SDL_SetCursor(_handCursor);

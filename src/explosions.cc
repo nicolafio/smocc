@@ -9,6 +9,10 @@ Public License 3.0.
 
 */
 
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include <SDL.h>
 
 #include "colors.h"
@@ -17,11 +21,6 @@ Public License 3.0.
 #include "gfx.h"
 
 using namespace std;
-using namespace smocc;
-
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 namespace smocc::explosions
 {

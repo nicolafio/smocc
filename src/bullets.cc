@@ -44,8 +44,9 @@ SDL_Color _FG_COLOR = SMOCC_FOREGROUND_COLOR;
 SDL_Color _DOUBLE_DAMAGE_BULLET_COLOR = SMOCC_FOREGROUND_COLOR;
 
 const Uint8 _BULLET_ALPHA = (Uint8)(round(SDL_ALPHA_OPAQUE * _BULLET_OPACITY));
-SDL_Color _BULLET_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
-                           _BULLET_ALPHA};
+SDL_Color _BULLET_COLOR = {
+    _FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b, _BULLET_ALPHA
+};
 
 unordered_map<unsigned long long, Bullet> _bullets;
 unordered_set<unsigned long long> _toDespawn;
@@ -65,13 +66,15 @@ const enemies::Enemy* _findClosestEnemy(double, double);
 
 void init()
 {
-    gfx::rotate(1, 0, _TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
-                &_tripleFireLeftBulletDirectionX,
-                &_tripleFireLeftBulletDirectionY);
+    gfx::rotate(
+        1, 0, _TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
+        &_tripleFireLeftBulletDirectionX, &_tripleFireLeftBulletDirectionY
+    );
 
-    gfx::rotate(1, 0, -_TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
-                &_tripleFireRightBulletDirectionX,
-                &_tripleFireRightBulletDirectionY);
+    gfx::rotate(
+        1, 0, -_TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS,
+        &_tripleFireRightBulletDirectionX, &_tripleFireRightBulletDirectionY
+    );
 
     _reset();
 }
@@ -325,7 +328,8 @@ const enemies::Enemy* _findClosestEnemy(double x, double y)
                 closestDistance = distance;
                 closestEnemy = &enemy;
             }
-        });
+        }
+    );
 
     return closestEnemy;
 }

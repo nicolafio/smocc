@@ -56,7 +56,6 @@ Richard Russell -- richard at rtrussell dot co dot uk
 #include "smocc.h"
 
 using namespace std;
-using namespace smocc;
 
 namespace fs = std::filesystem;
 
@@ -138,14 +137,17 @@ bool mouseInRect(SDL_Rect* rect)
     return pointInRect(mouseX, mouseY, rect);
 }
 
-bool rectsOverlap(double x1, double y1, double w1, double h1, double x2,
-                  double y2, double w2, double h2)
+bool rectsOverlap(
+    double x1, double y1, double w1, double h1, double x2, double y2, double w2,
+    double h2
+)
 {
     return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
 }
 
-bool circlesOverlap(double x1, double y1, double r1, double x2, double y2,
-                    double r2)
+bool circlesOverlap(
+    double x1, double y1, double r1, double x2, double y2, double r2
+)
 {
     double dx = x1 - x2;
     double dy = y1 - y2;
@@ -171,8 +173,10 @@ void unit(double x, double y, double* unitX, double* unitY)
     *unitY = y / m;
 }
 
-void direction(double originX, double originY, double targetX, double targetY,
-               double* directionX, double* directionY)
+void direction(
+    double originX, double originY, double targetX, double targetY,
+    double* directionX, double* directionY
+)
 {
     double dx = targetX - originX;
     double dy = targetY - originY;
@@ -198,8 +202,10 @@ void right(double directionX, double directionY, double* rightX, double* rightY)
     *rightY = directionX;
 }
 
-void leftward(double x, double y, double distance, double directionX,
-              double directionY, double* leftwardX, double* leftwardY)
+void leftward(
+    double x, double y, double distance, double directionX, double directionY,
+    double* leftwardX, double* leftwardY
+)
 {
     assert(isUnitVector(directionX, directionY, 0.01));
 
@@ -211,8 +217,10 @@ void leftward(double x, double y, double distance, double directionX,
     *leftwardY = y + leftY * distance;
 }
 
-void rightward(double x, double y, double distance, double directionX,
-               double directionY, double* rightwardX, double* rightwardY)
+void rightward(
+    double x, double y, double distance, double directionX, double directionY,
+    double* rightwardX, double* rightwardY
+)
 {
     assert(isUnitVector(directionX, directionY, 0.01));
 

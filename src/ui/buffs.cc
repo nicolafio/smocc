@@ -17,11 +17,10 @@ Public License 3.0.
 #include "../colors.h"
 #include "../game.h"
 #include "../gfx.h"
-#include "text.h"
 #include "../ui.h"
+#include "text.h"
 
 using namespace std;
-using namespace smocc::ui;
 
 namespace smocc::ui::buffs
 {

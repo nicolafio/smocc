@@ -26,7 +26,6 @@ Public License 3.0.
 #include "rng.h"
 
 using namespace std;
-using namespace smocc;
 
 namespace smocc::buffs
 {
@@ -42,7 +41,8 @@ static unordered_map<BuffType, string> _BUFF_TITLES = {
     {FOLLOW_ENEMIES, "Follow Enemies"}, {DOUBLE_DAMAGE, "Double Damage"},
     {RAPID_FIRE, "Rapid Fire"},         {TRIPLE_FIRE, "Triple Fire"},
     {SLOW_ENEMIES, "Slow Enemies"},     {BOUNCING_BULLETS, "Bouncing Bullets"},
-    {DOUBLE_FIRE, "Double Fire"},       {PUSH_ENEMIES, "Push Enemies"}};
+    {DOUBLE_FIRE, "Double Fire"},       {PUSH_ENEMIES, "Push Enemies"}
+};
 
 static double _BUFF_DROP_SQUARE_DIAMETER =
     sqrt(pow(_BUFF_DROP_SQUARE_SIDES_LENGTH, 2) * 2);
@@ -58,8 +58,9 @@ static double _BUFF_DROP_ROTATION_ANIMATION_TIME_INTERVAL_MILLISECONDS =
 static Uint8 _BUFF_DROP_ALPHA = (Uint8)(SDL_ALPHA_OPAQUE * _BUFF_DROP_OPACITY);
 
 SDL_Color _FG_COLOR = SMOCC_FOREGROUND_COLOR;
-SDL_Color _BUFF_COLOR = {_FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b,
-                         _BUFF_DROP_ALPHA};
+SDL_Color _BUFF_COLOR = {
+    _FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b, _BUFF_DROP_ALPHA
+};
 
 struct BuffDrop
 {
@@ -226,7 +227,8 @@ void _renderBuffDrop(BuffDrop& buffDrop)
     unsigned long long elapsed = game::getTimeElapsedMilliseconds() - start;
 
     double animationElapsed = remainder(
-        elapsed, _BUFF_DROP_ROTATION_ANIMATION_TIME_INTERVAL_MILLISECONDS);
+        elapsed, _BUFF_DROP_ROTATION_ANIMATION_TIME_INTERVAL_MILLISECONDS
+    );
 
     double animationProgress =
         animationElapsed /
@@ -237,7 +239,8 @@ void _renderBuffDrop(BuffDrop& buffDrop)
     double squareRotationY = -sin(squareRotationRadians);
 
     static pair<double, double> squarePoints[] = {
-        {-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+        {-1, -1}, {1, -1}, {1, 1}, {-1, 1}
+    };
 
     double polygonX[4];
     double polygonY[4];

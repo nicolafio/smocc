@@ -30,12 +30,11 @@ void init(int argc, char* argv[]);
 
 // Returns a texture for given text and properties. Saves the texture in a cache
 // for future use with the same parameters.
-SDL_Texture* get(const char* text, unsigned int size, SDL_Color color,
-                 FontStyle style);
-SDL_Texture* get(const char* text);
-SDL_Texture* get(const char* text, unsigned int size);
-SDL_Texture* get(const char* text, SDL_Color color);
-SDL_Texture* get(const char* text, FontStyle style);
-SDL_Texture* get(unsigned int number);
+SDL_Texture* get(const char* str, unsigned int size, SDL_Color c, FontStyle st);
+SDL_Texture* get(const char* str);
+SDL_Texture* get(const char* str, unsigned int size);
+SDL_Texture* get(const char* str, SDL_Color color);
+SDL_Texture* get(const char* str, FontStyle style);
+SDL_Texture* get(unsigned int num);
 
 } // namespace smocc::ui::text

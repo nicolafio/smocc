@@ -43,14 +43,15 @@ void init()
 {
     _gameOverVisible = false;
 
-    _gameOverText = ui::text::get(_GAME_OVER_TEXT);
-    _tryAgainText = ui::text::get(_TRY_AGAIN_TEXT);
-    _tryAgainHoverText = ui::text::get(_TRY_AGAIN_TEXT, _BG_COLOR);
-    _backToMainText = ui::text::get(_BACK_TO_MAIN_TEXT);
-    _backToMainHoverText = ui::text::get(_BACK_TO_MAIN_TEXT, _BG_COLOR);
+    _gameOverText = text::get(_GAME_OVER_TEXT);
+    _tryAgainText = text::get(_TRY_AGAIN_TEXT);
+    _tryAgainHoverText = text::get(_TRY_AGAIN_TEXT, _BG_COLOR);
+    _backToMainText = text::get(_BACK_TO_MAIN_TEXT);
+    _backToMainHoverText = text::get(_BACK_TO_MAIN_TEXT, _BG_COLOR);
 
-    SDL_QueryTexture(_gameOverText, NULL, NULL, &_gameOverTextWidth,
-                     &_gameOverTextHeight);
+    SDL_QueryTexture(
+        _gameOverText, NULL, NULL, &_gameOverTextWidth, &_gameOverTextHeight
+    );
 
     _gameOverViewHeight = _GAME_OVER_TEXT_MARGIN_PIXELS;
     _gameOverViewHeight += _gameOverTextHeight;

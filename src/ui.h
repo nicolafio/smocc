@@ -22,7 +22,7 @@ enum PointerStyle
     HAND
 };
 
-void init(int, char**);
+void init();
 void update();
 void setPointerStyle(PointerStyle);
 SDL_Rect rect();

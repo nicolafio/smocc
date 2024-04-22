@@ -14,12 +14,12 @@ Public License 3.0.
 
 using namespace std;
 
+namespace smocc::rng
+{
+
 random_device _rd;
 mt19937 _gen(_rd());
 uniform_real_distribution<double> _rng(0.0, 1.0);
-
-namespace smocc::rng
-{
 
 double roll()
 {
@@ -34,4 +34,4 @@ int rollInt(int min, int max)
     return std::min(i, max);
 }
 
-}
+} // namespace smocc::rng

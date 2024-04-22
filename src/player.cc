@@ -10,6 +10,7 @@ Public License 3.0.
 */
 
 #include <SDL.h>
+#include <algorithm>
 #include <iostream>
 
 #include "buffs.h"
@@ -21,11 +22,11 @@ Public License 3.0.
 #include "smocc.h"
 
 using namespace std;
-using namespace smocc;
-using enum buffs::BuffType;
 
 namespace smocc::player
 {
+
+using enum buffs::BuffType;
 
 const double _PLAYER_SPEED = 0.3;
 const int _BULLETS_SPAWN_DELAY_MILLISECONDS = 70;
@@ -33,8 +34,8 @@ const int _BULLETS_SPAWN_DELAY_MILLISECONDS = 70;
 SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
 
 bool _spawned;
-double _xPosition;
-double _yPosition;
+double _x;
+double _y;
 int _bulletsSpawnCooldown;
 
 void init()
@@ -52,8 +53,8 @@ void spawn()
 
     SDL_GetWindowSize(window, &w, &h);
 
-    _xPosition = w / 2;
-    _yPosition = h / 2;
+    _x = w / 2;
+    _y = h / 2;
 
     _bulletsSpawnCooldown = _BULLETS_SPAWN_DELAY_MILLISECONDS;
 }
@@ -73,31 +74,29 @@ void update()
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP])
-        _yPosition -= _PLAYER_SPEED * deltaTimeMilliseconds;
+        _y -= _PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN])
-        _yPosition += _PLAYER_SPEED * deltaTimeMilliseconds;
+        _y += _PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT])
-        _xPosition -= _PLAYER_SPEED * deltaTimeMilliseconds;
+        _x -= _PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT])
-        _xPosition += _PLAYER_SPEED * deltaTimeMilliseconds;
+        _x += _PLAYER_SPEED * deltaTimeMilliseconds;
 
     SDL_Window* window = smocc::getWindow();
 
     int windowWidth, windowHeight;
     SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-    int minX = PLAYER_CIRCLE_RADIUS;
-    int minY = PLAYER_CIRCLE_RADIUS;
-    int maxX = windowWidth - PLAYER_CIRCLE_RADIUS;
-    int maxY = windowHeight - PLAYER_CIRCLE_RADIUS;
+    double minX = PLAYER_CIRCLE_RADIUS;
+    double minY = PLAYER_CIRCLE_RADIUS;
+    double maxX = windowWidth - PLAYER_CIRCLE_RADIUS;
+    double maxY = windowHeight - PLAYER_CIRCLE_RADIUS;
 
-    if (_xPosition < minX) _xPosition = minX;
-    if (_xPosition > maxX) _xPosition = maxX;
-    if (_yPosition < minY) _yPosition = minY;
-    if (_yPosition > maxY) _yPosition = maxY;
+    _x = clamp(_x, minX, maxX);
+    _y = clamp(_y, minY, maxY);
 
     double xDirection;
     double yDirection;
@@ -106,8 +105,7 @@ void update()
 
     SDL_GetMouseState(&xMouse, &yMouse);
 
-    gfx::direction(_xPosition, _yPosition, xMouse, yMouse, &xDirection,
-                   &yDirection);
+    gfx::direction(_x, _y, xMouse, yMouse, &xDirection, &yDirection);
 
     _bulletsSpawnCooldown -= deltaTimeMilliseconds;
 
@@ -117,22 +115,22 @@ void update()
     if (_bulletsSpawnCooldown < 0)
     {
         _bulletsSpawnCooldown += _BULLETS_SPAWN_DELAY_MILLISECONDS;
-        bullets::fire(_xPosition, _yPosition, xDirection, yDirection);
+        bullets::fire(_x, _y, xDirection, yDirection);
     }
 
     gfx::setDrawColor(&_PLAYER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
-    gfx::fillCircle(_xPosition, _yPosition, PLAYER_CIRCLE_RADIUS);
+    gfx::fillCircle(_x, _y, PLAYER_CIRCLE_RADIUS);
 }
 
 double getXPosition()
 {
-    return _xPosition;
+    return _x;
 }
 
 double getYPosition()
 {
-    return _yPosition;
+    return _y;
 }
 
 } // namespace smocc::player
