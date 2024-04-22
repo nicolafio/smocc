@@ -305,7 +305,7 @@ SDL_Rect textureSize(SDL_Texture* texture)
     return size;
 }
 
-int textureWidth(SDL_Texture* texture)
+unsigned int textureWidth(SDL_Texture* texture)
 {
     int width;
 
@@ -318,7 +318,7 @@ int textureWidth(SDL_Texture* texture)
     return width;
 }
 
-int textureHeight(SDL_Texture* texture)
+unsigned int textureHeight(SDL_Texture* texture)
 {
     int height;
 
@@ -893,6 +893,16 @@ void renderTexture(SDL_Texture* texture, SDL_Rect* rect)
         cerr << "Failed to render texture: " << SDL_GetError() << endl;
         exit(1);
     }
+}
+
+void renderTexture(SDL_Texture* texture, int x, int y)
+{
+    SDL_Rect rect = textureSize(texture);
+
+    rect.x = x;
+    rect.y = y;
+
+    renderTexture(texture, &rect);
 }
 
 } // namespace smocc::gfx

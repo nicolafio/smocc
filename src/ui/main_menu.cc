@@ -4,6 +4,7 @@
 #include "../game.h"
 #include "../gfx.h"
 #include "../ui.h"
+#include "info.h"
 #include "menu_btn.h"
 #include "text.h"
 
@@ -87,6 +88,13 @@ void update()
         setPointerStyle(ARROW);
         _mainMenuVisible = false;
         game::begin();
+    }
+
+    if (pressingLeftMouseButton && infoBtnHovering)
+    {
+        setPointerStyle(ARROW);
+        _mainMenuVisible = false;
+        ui::info::show();
     }
 }
 

@@ -65,8 +65,8 @@ void rotate(
 TTF_Font* font(std::filesystem::path& fontPath, int size);
 SDL_Texture* text(TTF_Font* font, char const* text, SDL_Color color);
 SDL_Rect textureSize(SDL_Texture* texture);
-int textureWidth(SDL_Texture* texture);
-int textureHeight(SDL_Texture* texture);
+unsigned int textureWidth(SDL_Texture* texture);
+unsigned int textureHeight(SDL_Texture* texture);
 void setDrawColor(SDL_Color* color);
 void setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 void getDrawColor(Uint8* r, Uint8* g, Uint8* b, Uint8* a);
@@ -79,5 +79,6 @@ void fillEllipse(float cx, float cy, float rx, float ry);
 void fillCircle(float x, float y, float radius);
 void fillPolygon(const double* vx, const double* vy, int n);
 void renderTexture(SDL_Texture* texture, SDL_Rect* rect);
+void renderTexture(SDL_Texture* texture, int x, int y);
 
 } // namespace smocc::gfx

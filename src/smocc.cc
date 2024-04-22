@@ -22,6 +22,7 @@ Public License 3.0.
 #include "ui.h"
 #include "ui/buffs.h"
 #include "ui/game_over.h"
+#include "ui/info.h"
 #include "ui/main_menu.h"
 #include "ui/menu_btn.h"
 #include "ui/score_record.h"
@@ -90,6 +91,7 @@ void _init(int argc, char* argv[])
     smocc::ui::init();
     smocc::ui::text::init(argc, argv);
     smocc::ui::main_menu::init();
+    smocc::ui::info::init();
     smocc::ui::game_over::init();
     smocc::ui::score_record::init();
     smocc::ui::buffs::init();
@@ -118,6 +120,7 @@ void _update()
 
     smocc::ui::update();
     smocc::ui::main_menu::update();
+    smocc::ui::info::update();
     smocc::ui::game_over::update();
     smocc::ui::score_record::update();
     smocc::ui::buffs::update();
