@@ -4,8 +4,7 @@ gfx.cc: Graphics utilities for SMOCC
 
 Copyright (C) 2024 Nicola Fiori (JD342)
 
-This file is part of the SMOCC, licensed under the terms of the GNU General
-Public License 3.0.
+This file is part of SMOCC, licensed under GNU General Public License 3.0.
 
 The functions `fillEllipse` and `fillPolygon` have adapted code originating from
 SDL2_gfxPrimitives.c by Andreas Schiffler and Richard Russell, originally named
