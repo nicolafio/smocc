@@ -15,6 +15,7 @@ _These instructions are for macOS._
 - Install [Homebrew].
 - Install [SDL2]: `brew install sdl2`
 - Install [SDL2_ttf](https://wiki.libsdl.org/SDL2_ttf/FrontPage): `brew install sdl2_ttf`
+- Install [SDL2_image](https://wiki.libsdl.org/SDL2_image/FrontPage): `brew install sdl2_image`
 
 [VSCodium]: https://vscodium.com
 [VSCode]: https://code.visualstudio.com

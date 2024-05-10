@@ -11,6 +11,7 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 #include <SDL.h>
 #include <iostream>
 
+#include "background.h"
 #include "buffs.h"
 #include "bullets.h"
 #include "enemies.h"
@@ -87,6 +88,7 @@ void _init(int argc, char* argv[])
         exit(1);
     }
 
+    smocc::background::init();
     smocc::ui::init();
     smocc::ui::text::init(argc, argv);
     smocc::ui::main_menu::init();
@@ -117,6 +119,7 @@ void _update()
     while (!_quit && SDL_PollEvent(&e))
         _event(&e);
 
+    smocc::background::update();
     smocc::ui::update();
     smocc::ui::main_menu::update();
     smocc::ui::info::update();
