@@ -8,13 +8,13 @@ C++ implementation of SMOC, a minigame once implemented in JS+HTML.
 
 _These instructions are for macOS._
 
-* Install [VSCodium] or [VSCode].
-    * If using VSCodium, switch the extension registry to Microsoft's as noted in the section
-      [Switching extension registry to VScode] under the appendix.
-* Install Microsoft's [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extension.
-* Install [Homebrew].
-* Install [SDL2]: `brew install sdl2`
-* Install [SDL2_ttf](https://wiki.libsdl.org/SDL2_ttf/FrontPage): `brew install sdl2_ttf`
+- Install [VSCodium] or [VSCode].
+  - If using VSCodium, switch the extension registry to Microsoft's as noted in the section
+    [Switching extension registry to VScode] under the appendix.
+- Install Microsoft's [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extension.
+- Install [Homebrew].
+- Install [SDL2]: `brew install sdl2`
+- Install [SDL2_ttf](https://wiki.libsdl.org/SDL2_ttf/FrontPage): `brew install sdl2_ttf`
 
 [VSCodium]: https://vscodium.com
 [VSCode]: https://code.visualstudio.com
@@ -26,10 +26,10 @@ _These instructions are for macOS._
 
 This software conains work originating from:
 
-* [SDL2_gfxPrimitives.c] source code by [Andreas Schiffler (ferzkopp)] and [Richard Russell]
+- [SDL2_gfxPrimitives.c] source code by [Andreas Schiffler (ferzkopp)] and [Richard Russell]
   licesed under [Zlib](http://www.zlib.net/zlib_license.html).
 
-* [Inconsolate LGC] font by [MihailJP] lincesed under
+- [Inconsolate LGC] font by [MihailJP] lincesed under
   [SIL OFL](out/inconsolata-lgc/LICENSE).
 
 [Andreas Schiffler (ferzkopp)]: https://www.ferzkopp.net/
@@ -54,10 +54,10 @@ version.
 
 SMOCC is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program.  If not, see <https://www.gnu.org/licenses/>.
+this program. If not, see <https://www.gnu.org/licenses/>.
 
 [COPYING]: COPYING
 [GPLv3 Image]: https://www.gnu.org/graphics/gplv3-127x51.png
@@ -72,11 +72,11 @@ with the following:
 
 ```json
 {
-    "extensionsGallery": {
-        "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
-        "itemUrl": "https://marketplace.visualstudio.com/items",
-        "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
-        "controlUrl": ""
-    }
+  "extensionsGallery": {
+    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "itemUrl": "https://marketplace.visualstudio.com/items",
+    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+    "controlUrl": ""
+  }
 }
 ```
