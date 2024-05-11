@@ -36,7 +36,11 @@ struct Bullet
 void init();
 void update();
 
-void fire(double x, double y, double xDirection, double yDirection);
+unsigned long long createSource();
+void setSourcePosition(unsigned long long sourceID, double x, double y);
+void setSourceDirection(unsigned long long sourceID, double dx, double dy);
+void deleteSource(unsigned long long sourceID);
+
 void despawn(unsigned long long id);
 void forEach(std::function<void(const Bullet& bullet)> callback);
 

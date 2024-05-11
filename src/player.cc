@@ -28,14 +28,13 @@ namespace smocc::player
 using enum buffs::BuffType;
 
 const double _PLAYER_SPEED = 0.3;
-const int _BULLETS_SPAWN_DELAY_MILLISECONDS = 70;
 
 SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
+unsigned long long _bulletSourceID;
 
 bool _spawned;
 double _x;
 double _y;
-int _bulletsSpawnCooldown;
 
 void init()
 {
@@ -47,6 +46,8 @@ void spawn()
     cout << "Player spawned!" << endl;
     _spawned = true;
 
+    _bulletSourceID = bullets::createSource();
+
     SDL_Window* window = smocc::getWindow();
     int w, h;
 
@@ -55,7 +56,7 @@ void spawn()
     _x = w / 2;
     _y = h / 2;
 
-    _bulletsSpawnCooldown = _BULLETS_SPAWN_DELAY_MILLISECONDS;
+    bullets::setSourcePosition(_bulletSourceID, _x, _y);
 }
 
 void update()
@@ -64,7 +65,12 @@ void update()
 
     if (!game::isRunning())
     {
-        _spawned = false;
+        if (_spawned)
+        {
+            _spawned = false;
+            bullets::deleteSource(_bulletSourceID);
+        }
+
         return;
     }
 
@@ -97,6 +103,8 @@ void update()
     _x = clamp(_x, minX, maxX);
     _y = clamp(_y, minY, maxY);
 
+    bullets::setSourcePosition(_bulletSourceID, _x, _y);
+
     double xDirection;
     double yDirection;
     int xMouse;
@@ -106,16 +114,7 @@ void update()
 
     gfx::direction(_x, _y, xMouse, yMouse, &xDirection, &yDirection);
 
-    _bulletsSpawnCooldown -= deltaTimeMilliseconds;
-
-    if (buffs::isActive(RAPID_FIRE))
-        _bulletsSpawnCooldown -= deltaTimeMilliseconds;
-
-    if (_bulletsSpawnCooldown < 0)
-    {
-        _bulletsSpawnCooldown += _BULLETS_SPAWN_DELAY_MILLISECONDS;
-        bullets::fire(_x, _y, xDirection, yDirection);
-    }
+    bullets::setSourceDirection(_bulletSourceID, xDirection, yDirection);
 
     gfx::setDrawColor(&_PLAYER_COLOR);
     gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);

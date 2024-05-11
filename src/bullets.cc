@@ -38,6 +38,7 @@ const int _BULLET_LENGTH = 6;
 const int _DOUBLE_FIRE_BUFF_BULLETS_SPACING = 6;
 const double _TRIPLE_FIRE_BUFF_BULLETS_ROTATION_RADIANS = M_PI / 8;
 const double _FOLLOW_ENEMIES_BUFF_ROTATION_RADIANS_PER_MILLISECOND = 0.005;
+const int _BULLETS_SPAWN_DELAY_MILLISECONDS = 70;
 
 SDL_Color _FG_COLOR = SMOCC_FOREGROUND_COLOR;
 SDL_Color _DOUBLE_DAMAGE_BULLET_COLOR = SMOCC_FOREGROUND_COLOR;
@@ -47,8 +48,24 @@ SDL_Color _BULLET_COLOR = {
     _FG_COLOR.r, _FG_COLOR.g, _FG_COLOR.b, _BULLET_ALPHA
 };
 
+struct BulletSource
+{
+    unsigned int id;
+
+    int fireCooldown;
+    double x;
+    double y;
+    double xDirection;
+    double yDirection;
+
+    bool despawning;
+};
+
+unordered_map<unsigned long long, BulletSource> _sources;
+unordered_set<unsigned long long> _sourcesToDelete;
+
 unordered_map<unsigned long long, Bullet> _bullets;
-unordered_set<unsigned long long> _toDespawn;
+unordered_set<unsigned long long> _bulletsToDespawn;
 
 unsigned long long _nextID;
 bool _resetDone;
@@ -58,6 +75,8 @@ double _tripleFireLeftBulletDirectionY;
 double _tripleFireRightBulletDirectionX;
 double _tripleFireRightBulletDirectionY;
 
+void _updateSource(BulletSource& source);
+void _fire(double x, double y, double xDirection, double yDirection);
 void _spawn(double, double, double, double);
 void _reset();
 void _updateBullet(Bullet& bullet);
@@ -88,13 +107,20 @@ void update()
 
     _resetDone = false;
 
+    for (auto& [_, source] : _sources)
+        _updateSource(source);
+
     for (auto& [id, bullet] : _bullets)
         _updateBullet(bullet);
 
-    for (unsigned long long id : _toDespawn)
+    for (unsigned int id : _sourcesToDelete)
+        _sources.erase(id);
+
+    for (unsigned long long id : _bulletsToDespawn)
         _bullets.erase(id);
 
-    _toDespawn.clear();
+    _sourcesToDelete.clear();
+    _bulletsToDespawn.clear();
 
     bool doubleDamage = buffs::isActive(DOUBLE_DAMAGE);
     SDL_Color* c = doubleDamage ? &_DOUBLE_DAMAGE_BULLET_COLOR : &_BULLET_COLOR;
@@ -105,7 +131,43 @@ void update()
         gfx::drawLine(bullet.xBase, bullet.yBase, bullet.xTip, bullet.yTip);
 }
 
-void fire(double x, double y, double xDirection, double yDirection)
+unsigned long long createSource()
+{
+    BulletSource source;
+
+    source.id = _nextID++;
+    source.fireCooldown = _BULLETS_SPAWN_DELAY_MILLISECONDS;
+    source.x = 0;
+    source.y = 0;
+    source.xDirection = 1;
+    source.yDirection = 0;
+
+    _sources[source.id] = source;
+
+    return source.id;
+}
+
+void setSourcePosition(unsigned long long sourceID, double x, double y)
+{
+    _sources[sourceID].x = x;
+    _sources[sourceID].y = y;
+}
+
+void setSourceDirection(unsigned long long sourceID, double dx, double dy)
+{
+    assert(gfx::isUnitVector(dx, dy, 0.01));
+
+    _sources[sourceID].xDirection = dx;
+    _sources[sourceID].yDirection = dy;
+}
+
+void deleteSource(unsigned long long sourceID)
+{
+    _sources[sourceID].despawning = true;
+    _sourcesToDelete.insert(sourceID);
+}
+
+void _fire(double x, double y, double xDirection, double yDirection)
 {
     assert(gfx::isUnitVector(xDirection, yDirection, 0.01));
 
@@ -193,7 +255,7 @@ void _spawn(double x, double y, double xDirection, double yDirection)
 void despawn(unsigned long long id)
 {
     _bullets[id].despawning = true;
-    _toDespawn.insert(id);
+    _bulletsToDespawn.insert(id);
 }
 
 void forEach(std::function<void(const Bullet& bullet)> callback)
@@ -205,10 +267,31 @@ void forEach(std::function<void(const Bullet& bullet)> callback)
 void _reset()
 {
     _bullets.clear();
-    _toDespawn.clear();
+    _bulletsToDespawn.clear();
+    _sources.clear();
+    _sourcesToDelete.clear();
     _nextID = 0;
 
     _resetDone = true;
+}
+
+void _updateSource(BulletSource& source)
+{
+    if (source.despawning) return;
+
+    unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
+
+    source.fireCooldown -= deltaTimeMilliseconds;
+
+    if (buffs::isActive(RAPID_FIRE))
+        source.fireCooldown -= deltaTimeMilliseconds;
+
+    if (source.fireCooldown < 0)
+    {
+        source.fireCooldown += _BULLETS_SPAWN_DELAY_MILLISECONDS;
+
+        _fire(source.x, source.y, source.xDirection, source.yDirection);
+    }
 }
 
 void _updateBullet(Bullet& bullet)
@@ -306,7 +389,7 @@ void _updateBullet(Bullet& bullet)
     bool shouldDespawn =
         !bouncingBuffActive && !gfx::pointOnScreen(bullet.xBase, bullet.yBase);
 
-    if (shouldDespawn) _toDespawn.insert(bullet.id);
+    if (shouldDespawn) despawn(bullet.id);
 }
 
 // Returns nullptr if no enemies are present.
