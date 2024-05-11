@@ -40,7 +40,8 @@ static unordered_map<BuffType, string> _BUFF_TITLES = {
     {FOLLOW_ENEMIES, "Follow Enemies"}, {DOUBLE_DAMAGE, "Double Damage"},
     {RAPID_FIRE, "Rapid Fire"},         {TRIPLE_FIRE, "Triple Fire"},
     {SLOW_ENEMIES, "Slow Enemies"},     {BOUNCING_BULLETS, "Bouncing Bullets"},
-    {DOUBLE_FIRE, "Double Fire"},       {PUSH_ENEMIES, "Push Enemies"}
+    {DOUBLE_FIRE, "Double Fire"},       {PUSH_ENEMIES, "Push Enemies"},
+    {FRIENDLY_BOTS, "Friendly Bots"}
 };
 
 static double _BUFF_DROP_SQUARE_DIAMETER =
@@ -262,7 +263,9 @@ void _renderBuffDrop(BuffDrop& buffDrop)
 
 void _rollBuff()
 {
-    BuffType type = BUFF_TYPES[rng::rollInt(0, BUFF_TYPES_COUNT - 1)];
+    // BuffType type = BUFF_TYPES[rng::rollInt(0, BUFF_TYPES_COUNT - 1)];
+
+    BuffType type = FRIENDLY_BOTS;
 
     _timeLeftMilliseconds[type] += BUFF_DURATION_MILLISECONDS;
 

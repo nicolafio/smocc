@@ -12,6 +12,7 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 #include <iostream>
 
 #include "background.h"
+#include "bots.h"
 #include "buffs.h"
 #include "bullets.h"
 #include "enemies.h"
@@ -38,8 +39,6 @@ int main(int argc, char* argv[])
 namespace smocc
 {
 
-const int _WINDOW_WIDTH = 1000;
-const int _WINDOW_HEIGHT = 720;
 const int _GAME_LOOP_MINIMUM_FRAME_TIME_MILLISECONDS = 8;
 
 SDL_Window* _window;
@@ -78,8 +77,8 @@ void _init(int argc, char* argv[])
         exit(1);
     }
 
-    int w = _WINDOW_WIDTH;
-    int h = _WINDOW_HEIGHT;
+    int w = WINDOW_WIDTH;
+    int h = WINDOW_HEIGHT;
     int flags = 0;
 
     if (SDL_CreateWindowAndRenderer(w, h, flags, &_window, &_renderer))
@@ -99,6 +98,7 @@ void _init(int argc, char* argv[])
     smocc::game::init();
     smocc::player::init();
     smocc::enemies::init();
+    smocc::bots::init();
     smocc::bullets::init();
     smocc::explosions::init();
     smocc::buffs::init();
@@ -129,6 +129,7 @@ void _update()
     smocc::game::update();
     smocc::player::update();
     smocc::enemies::update();
+    smocc::bots::update();
     smocc::bullets::update();
     smocc::explosions::update();
     smocc::buffs::update();

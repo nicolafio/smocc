@@ -27,8 +27,6 @@ namespace smocc::player
 
 using enum buffs::BuffType;
 
-const double _PLAYER_SPEED = 0.3;
-
 SDL_Color _PLAYER_COLOR = SMOCC_FOREGROUND_COLOR;
 unsigned long long _bulletSourceID;
 
@@ -79,16 +77,16 @@ void update()
     const Uint8* keys = SDL_GetKeyboardState(NULL);
 
     if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP])
-        _y -= _PLAYER_SPEED * deltaTimeMilliseconds;
+        _y -= PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN])
-        _y += _PLAYER_SPEED * deltaTimeMilliseconds;
+        _y += PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT])
-        _x -= _PLAYER_SPEED * deltaTimeMilliseconds;
+        _x -= PLAYER_SPEED * deltaTimeMilliseconds;
 
     if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT])
-        _x += _PLAYER_SPEED * deltaTimeMilliseconds;
+        _x += PLAYER_SPEED * deltaTimeMilliseconds;
 
     SDL_Window* window = smocc::getWindow();
 

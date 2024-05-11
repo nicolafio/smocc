@@ -15,6 +15,7 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 namespace smocc::bullets
 {
 
+const double BULLET_SPEED = 0.5;
 const int BULLET_DAMAGE = 1;
 
 struct Bullet

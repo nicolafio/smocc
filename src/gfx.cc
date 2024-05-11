@@ -87,6 +87,88 @@ double distance(double x1, double y1, double x2, double y2)
     return sqrt(dx * dx + dy * dy);
 }
 
+double distancePointToSegment(
+    double x, double y, double x1, double y1, double x2, double y2
+)
+{
+    // https://stackoverflow.com/a/1079478
+
+    struct vec2
+    {
+        double x;
+        double y;
+    };
+
+    auto add = [](vec2 a, vec2 b) -> vec2 { return {a.x + b.x, a.y + b.y}; };
+    auto sub = [](vec2 a, vec2 b) -> vec2 { return {a.x - b.x, a.y - b.y}; };
+    auto dot = [](vec2 a, vec2 b) -> double { return a.x * b.x + a.y * b.y; };
+    auto proj = [&](vec2 a, vec2 b) -> vec2
+    {
+        double k = dot(a, b) / dot(b, b);
+        return {b.x * k, b.y * k};
+    };
+
+    auto a = vec2{x1, y1};
+    auto b = vec2{x2, y2};
+    auto c = vec2{x, y};
+
+    auto ac = sub(c, a);
+    auto ab = sub(b, a);
+
+    auto d = add(a, proj(ac, ab));
+    auto ad = sub(d, a);
+
+    auto k = abs(ab.x) > abs(ab.y) ? ad.x / ab.x : ad.y / ab.y;
+
+    if (k < 0) return distance(x, y, x1, y1);
+    if (k > 1) return distance(x, y, x2, y2);
+
+    return distance(x, y, d.x, d.y);
+}
+
+double distancePointToRectOutline(
+    double x, double y, double rectX, double rectY, double rectW, double rectH
+)
+{
+    struct point
+    {
+        double x, y;
+    };
+
+    struct line
+    {
+        point a;
+        point b;
+    };
+
+    point topLeft = {rectX, rectY};
+    point topRight = {rectX + rectW, rectY};
+    point bottomLeft = {rectX, rectY + rectH};
+    point bottomRight = {rectX + rectW, rectY + rectH};
+
+    line top = {topLeft, topRight};
+    line right = {topRight, bottomRight};
+    line bottom = {bottomRight, bottomLeft};
+    line left = {bottomLeft, topLeft};
+
+    line lines[] = {top, right, bottom, left};
+
+    double distance = numeric_limits<double>::infinity();
+
+    for (line l : lines)
+    {
+        double x1 = l.a.x;
+        double y1 = l.a.y;
+        double x2 = l.b.x;
+        double y2 = l.b.y;
+        double d = distancePointToSegment(x, y, x1, y1, x2, y2);
+
+        distance = min(distance, d);
+    }
+
+    return distance;
+}
+
 double magnitude(double x, double y)
 {
     return sqrt(x * x + y * y);
@@ -162,6 +244,13 @@ bool pointInCircle(double x, double y, double cx, double cy, double r)
     double distance = sqrt(dx * dx + dy * dy);
 
     return distance < r;
+}
+
+bool segmentIntersectsCircle(
+    double x1, double y1, double x2, double y2, double cx, double cy, double r
+)
+{
+    return distancePointToSegment(cx, cy, x1, y1, x2, y2) < r;
 }
 
 void unit(double x, double y, double* unitX, double* unitY)

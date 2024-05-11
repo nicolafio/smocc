@@ -25,11 +25,12 @@ enum BuffType
     BOUNCING_BULLETS,
     DOUBLE_FIRE,
     PUSH_ENEMIES,
+    FRIENDLY_BOTS
 };
 
 const BuffType BUFF_TYPES[] = {FOLLOW_ENEMIES, DOUBLE_DAMAGE, RAPID_FIRE,
                                TRIPLE_FIRE,    SLOW_ENEMIES,  BOUNCING_BULLETS,
-                               DOUBLE_FIRE,    PUSH_ENEMIES};
+                               DOUBLE_FIRE,    PUSH_ENEMIES,  FRIENDLY_BOTS};
 
 const unsigned int BUFF_TYPES_COUNT = sizeof(BUFF_TYPES) / sizeof(BuffType);
 

@@ -20,6 +20,12 @@ namespace smocc::gfx
 SDL_Cursor* systemCursor(SDL_SystemCursor cursor);
 double inverseLerp(double a, double b, double value);
 double distance(double x1, double y1, double x2, double y2);
+double distancePointToSegment(
+    double x, double y, double x1, double y1, double x2, double y2
+);
+double distancePointToRectOutline(
+    double x, double y, double rectX, double rectY, double rectW, double rectH
+);
 double magnitude(double x1, double x2);
 bool isUnitVector(double x, double y, double precision);
 bool pointInRect(double x, double y, SDL_Rect* rect);
@@ -37,6 +43,9 @@ bool circlesOverlap(
     double x1, double y1, double r1, double x2, double y2, double r2
 );
 bool pointInCircle(double x, double y, double cx, double cy, double r);
+bool segmentIntersectsCircle(
+    double x1, double y1, double x2, double y2, double cx, double cy, double r
+);
 void unit(double x, double y, double* unitX, double* unitY);
 void direction(
     double originX, double originY, double targetX, double targetY,

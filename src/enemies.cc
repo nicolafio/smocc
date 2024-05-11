@@ -36,10 +36,6 @@ namespace smocc::enemies
 using enum buffs::BuffType;
 
 const int _SPAWN_DELAY_MILLISECONDS = 500;
-const double _MIN_ENEMY_HEALTH = 1.0;
-const double _MAX_ENEMY_HEALTH = 30.0;
-const double _MIN_ENEMY_SPEED = 0.2;
-const double _MAX_ENEMY_SPEED = 0.5;
 const double _MAX_ENEMY_PUSHED_SPEED = 2.0;
 const int _MIN_ENEMY_COUNT = 1;
 const int _MAX_ENEMY_COUNT = 10;
@@ -241,7 +237,7 @@ void _initEnemyPosition(Enemy& enemy, SpawningEdge spawningEdge)
 
 void _initEnemySpeed(Enemy& enemy)
 {
-    double speed = lerp(_MIN_ENEMY_SPEED, _MAX_ENEMY_SPEED, rng::roll());
+    double speed = lerp(MIN_ENEMY_SPEED, MAX_ENEMY_SPEED, rng::roll());
     enemy.initialSpeed = speed;
     enemy.speed = speed;
 }
@@ -260,8 +256,8 @@ void _initEnemyRotation(Enemy& enemy, SpawningEdge spawningEdge)
 
 void _initEnemyHealth(Enemy& enemy)
 {
-    double min = _MIN_ENEMY_HEALTH;
-    double max = _MAX_ENEMY_HEALTH;
+    double min = MIN_ENEMY_HEALTH;
+    double max = MAX_ENEMY_HEALTH;
     double difficulty = game::getDifficulty();
 
     enemy.health = round(lerp(min, max, rng::roll() * difficulty));
@@ -307,7 +303,7 @@ void _updateEnemy(Enemy& enemy)
 void _updateEnemyRadius(Enemy& enemy)
 {
     unsigned int deltaTime = game::getDeltaTimeMilliseconds();
-    double t = enemy.health / _MAX_ENEMY_HEALTH;
+    double t = enemy.health / MAX_ENEMY_HEALTH;
     double targetRadius = lerp(_MIN_ENEMY_RADIUS, _MAX_ENEMY_RADIUS, t);
     double radiusChange = _ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTime;
 
@@ -425,7 +421,7 @@ void _pushEnemy(enemies::Enemy& enemy, double xAmount, double yAmount)
     // More health reduces the strength of the push.
 
     double h = enemy.health;
-    double t = 1 - gfx::inverseLerp(_MIN_ENEMY_HEALTH, _MAX_ENEMY_HEALTH, h);
+    double t = 1 - gfx::inverseLerp(MIN_ENEMY_HEALTH, MAX_ENEMY_HEALTH, h);
     double maxHealthEffect = _PUSH_ENEMIES_EFFECT_AT_MIN_HEALTH;
     double minHealthEffect = _PUSH_ENEMIES_EFFECT_AT_MAX_HEALTH;
     double healthEffect = lerp(minHealthEffect, maxHealthEffect, t);

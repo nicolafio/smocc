@@ -32,7 +32,6 @@ using enum buffs::BuffType;
 namespace smocc::bullets
 {
 
-const double _BULLET_SPEED = 0.5;
 const double _BULLET_OPACITY = 0.7;
 const int _BULLET_LENGTH = 6;
 const int _DOUBLE_FIRE_BUFF_BULLETS_SPACING = 6;
@@ -245,8 +244,8 @@ void _spawn(double x, double y, double xDirection, double yDirection)
     bullet.yTip = y + yDirection * _BULLET_LENGTH;
     bullet.xDirection = xDirection;
     bullet.yDirection = yDirection;
-    bullet.xSpeed = xDirection * _BULLET_SPEED;
-    bullet.ySpeed = yDirection * _BULLET_SPEED;
+    bullet.xSpeed = xDirection * BULLET_SPEED;
+    bullet.ySpeed = yDirection * BULLET_SPEED;
     bullet.despawning = false;
 
     _bullets[bullet.id] = bullet;
@@ -352,8 +351,8 @@ void _updateBullet(Bullet& bullet)
 
         bullet.xDirection = xd;
         bullet.yDirection = yd;
-        bullet.xSpeed = xd * _BULLET_SPEED;
-        bullet.ySpeed = yd * _BULLET_SPEED;
+        bullet.xSpeed = xd * BULLET_SPEED;
+        bullet.ySpeed = yd * BULLET_SPEED;
         bullet.xTip = bullet.xBase + xd * _BULLET_LENGTH;
         bullet.yTip = bullet.yBase + yd * _BULLET_LENGTH;
     }
