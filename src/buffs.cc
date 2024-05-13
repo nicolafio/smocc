@@ -30,7 +30,7 @@ namespace smocc::buffs
 {
 
 static double _BUFF_DROP_OPACITY = 0.7;
-static double _BUFF_DROP_SPAWN_CHANCE = 0.15;
+static double _BUFF_DROP_SPAWN_CHANCE = 1.0;
 static double _BUFF_DROP_CHASE_SPEED = 0.2;
 static double _BUFF_DROP_MAGNETIC_RADIUS = 100;
 static double _BUFF_DROP_ROTATION_ANIMATION_RADIANS_PER_MILLISECOND = 0.01;
