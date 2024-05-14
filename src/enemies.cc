@@ -39,8 +39,7 @@ const int _SPAWN_DELAY_MILLISECONDS = 500;
 const double _MAX_ENEMY_PUSHED_SPEED = 2.0;
 const int _MIN_ENEMY_COUNT = 1;
 const int _MAX_ENEMY_COUNT = 10;
-const double _MIN_ENEMY_RADIUS = 15.0;
-const double _MAX_ENEMY_RADIUS = 75.0;
+
 const double _ENEMY_RADIUS_CHANGE_SPEED = 0.1;
 const double _DROPPED_BUFF_RELATIVE_SPEED = 1.0 / 6.0;
 const double _SLOW_ENEMIES_BUFF_FACTOR = 0.2;
@@ -304,7 +303,7 @@ void _updateEnemyRadius(Enemy& enemy)
 {
     unsigned int deltaTime = game::getDeltaTimeMilliseconds();
     double t = enemy.health / MAX_ENEMY_HEALTH;
-    double targetRadius = lerp(_MIN_ENEMY_RADIUS, _MAX_ENEMY_RADIUS, t);
+    double targetRadius = lerp(MIN_ENEMY_RADIUS, MAX_ENEMY_RADIUS, t);
     double radiusChange = _ENEMY_RADIUS_CHANGE_SPEED * (double)deltaTime;
 
     if (enemy.radius < targetRadius)

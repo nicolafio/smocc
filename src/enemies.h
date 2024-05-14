@@ -15,6 +15,8 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 namespace smocc::enemies
 {
 
+const double MIN_ENEMY_RADIUS = 15.0;
+const double MAX_ENEMY_RADIUS = 75.0;
 const double MIN_ENEMY_HEALTH = 1.0;
 const double MAX_ENEMY_HEALTH = 30.0;
 const double MIN_ENEMY_SPEED = 0.2;
