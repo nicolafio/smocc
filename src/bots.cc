@@ -14,6 +14,7 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 #include <cmath>
 #include <limits>
 #include <utility>
+#include <vector>
 
 #include "bots.h"
 #include "buffs.h"
@@ -35,14 +36,15 @@ using enum buffs::BuffType;
 
 const unsigned int _WAYPOINT_GRID_COLUMNS = smocc::WINDOW_WIDTH / 10;
 const unsigned int _WAYPOINT_GRID_ROWS = smocc::WINDOW_HEIGHT / 10;
+const unsigned int _WAYPOINT_CHECK_RADIUS = 2000;
 
-const double _POI_SPEED = 0.1;
-const double _POI_PRIORITY_FACTOR = 0.4; // 0.0 to 1.0
+const double _POI_SPEED = 0.4;
+const double _POI_PRIORITY_FACTOR = 0.8; // 0.0 to 1.0
 
 const double _PLAYER_HEAT_FACTOR = 0.1;
 const double _BOT_HEAT_FACTOR = 0.3;
-const double _WORLD_EDGES_HEAT_FACTOR = 0.5;
-const double _ENEMY_HEAT_FACTOR = 1.0;
+const double _WORLD_EDGES_HEAT_FACTOR = 0.1;
+const double _ENEMY_HEAT_FACTOR = 4.0;
 
 const double _AIM_FULL_ROTATION_SPEED_MILLISECONDS = 1000;
 
@@ -87,7 +89,7 @@ void _updateHeatMap();
 void _updateHeatPoint(unsigned int col, unsigned int row);
 double _getPlayerHeat(double x, double y);
 double _getWorldEdgesHeat(double x, double y);
-double _getBotHeat(double x, double y, unsigned int botIndex);
+double _getBotHeat(double x, double y, Bot& bot);
 double _getEnemyHeat(double x, double y, const enemies::Enemy& enemy);
 void _activateBot(Bot& bot);
 void _updateBot(Bot& bot);
@@ -254,19 +256,19 @@ double _getPlayerHeat(double x, double y)
     double playerX = player::getXPosition();
     double playerY = player::getYPosition();
     double distance = gfx::distance(x, y, playerX, playerY);
+    double distanceFactor = _maxDistance / distance;
 
-    return _PLAYER_HEAT_FACTOR * _maxDistance / distance;
+    return _PLAYER_HEAT_FACTOR * distanceFactor;
 }
 
-double _getBotHeat(double x, double y, unsigned int botIndex)
+double _getBotHeat(double x, double y, Bot& bot)
 {
-    if (!_bots[botIndex].active) return 0;
+    if (!bot.active) return 0;
 
-    double botX = _bots[botIndex].x;
-    double botY = _bots[botIndex].y;
-    double distance = gfx::distance(x, y, botX, botY);
+    double distance = gfx::distance(x, y, bot.x, bot.y);
+    double distanceFactor = _maxDistance / distance;
 
-    return _BOT_HEAT_FACTOR * _maxDistance / distance;
+    return _BOT_HEAT_FACTOR * distanceFactor;
 }
 
 double _getWorldEdgesHeat(double x, double y)
@@ -278,8 +280,9 @@ double _getWorldEdgesHeat(double x, double y)
 
     double maxEdgeDistance = min(ww, wh) / 2;
     double distance = gfx::distancePointToRectOutline(x, y, 0, 0, ww, wh);
+    double distanceFactor = maxEdgeDistance / distance;
 
-    return _WORLD_EDGES_HEAT_FACTOR * _maxDistance / distance;
+    return _WORLD_EDGES_HEAT_FACTOR * distanceFactor;
 }
 
 double _getEnemyHeat(double x, double y, const enemies::Enemy& enemy)
@@ -292,13 +295,10 @@ double _getEnemyHeat(double x, double y, const enemies::Enemy& enemy)
     double s = enemy.speed;
 
     double distanceFactor = _maxDistance / d;
-    double healthFactor = lerp(1.0, 10.0, h / enemies::MAX_ENEMY_HEALTH);
-    double speedFactor = lerp(1.0, 10.0, s / enemies::MAX_ENEMY_SPEED);
+    // double healthFactor = lerp(0.4, 1.0, h / enemies::MAX_ENEMY_HEALTH);
+    // double speedFactor = lerp(0.4, 1.0, s / enemies::MAX_ENEMY_SPEED);
 
-    double base = distanceFactor * healthFactor * speedFactor;
-    double power = max(1.0, 1 + 10 * speedFactor - 10);
-
-    return _ENEMY_HEAT_FACTOR * pow(base, power);
+    return _ENEMY_HEAT_FACTOR * distanceFactor;
 }
 
 void _activateBot(Bot& bot)
@@ -417,6 +417,15 @@ void _updateBotPointOfInterest(Bot& bot)
         bot.poi.x += bot.poi.sppedX * deltaTimeMilliseconds;
         bot.poi.y += bot.poi.speedY * deltaTimeMilliseconds;
     }
+
+    // DEBUG
+
+    SDL_Color blue = {0, 0, 255, (Uint8)(255 * .5)};
+    gfx::setDrawColor(&blue);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::fillCircle(bot.poi.x, bot.poi.y, 5);
+
+    // / DEBUG
 }
 
 void _updateBotAim(Bot& bot)
@@ -461,37 +470,144 @@ void _updateBotAim(Bot& bot)
 
 pair<unsigned int, unsigned int> _findBestWaypoint(Bot& bot)
 {
+    double x = bot.x;
+    double y = bot.y;
+    double wcr = _WAYPOINT_CHECK_RADIUS;
+
     double coldestHeat = std::numeric_limits<double>::infinity();
+    double playerX = player::getXPosition();
+    double playerY = player::getYPosition();
+    double playerDistance = gfx::distance(bot.x, bot.y, playerX, playerY);
+    bool isPlayerClose = playerDistance < wcr;
 
     pair<unsigned int, unsigned int> bestWaypoint = {bot.x, bot.y};
+    vector<const enemies::Enemy*> closeEnemies;
+    vector<Bot*> closeBots;
+
+    enemies::forEach(
+        [&](auto e)
+        {
+            if (gfx::circlesOverlap(x, y, wcr, e.x, e.y, e.radius))
+                closeEnemies.push_back(&e);
+        }
+    );
+
+    for (int i = 0; i < BOTS_COUNT; i++)
+    {
+        if (i == bot.index) continue;
+        double bx = _bots[i].x, by = _bots[i].y, br = BOT_CIRCLE_RADIUS;
+        if (gfx::circlesOverlap(x, y, wcr, bx, by, br))
+            closeBots.push_back(&_bots[i]);
+    }
+
+    // DEBUG
+
+    SDL_Window* window = smocc::getWindow();
+    int ww, wh;
+
+    SDL_GetWindowSize(window, &ww, &wh);
+
+    double heatCellWidth = (double)ww / _WAYPOINT_GRID_COLUMNS;
+    double heatCellHeight = (double)wh / _WAYPOINT_GRID_ROWS;
+    double heatMap[_WAYPOINT_GRID_COLUMNS][_WAYPOINT_GRID_ROWS];
+    double maxHeat = 0;
+
+    for (int c = 0; c < _WAYPOINT_GRID_COLUMNS; c++)
+        for (int r = 0; r < _WAYPOINT_GRID_ROWS; r++)
+            heatMap[c][r] = std::numeric_limits<double>::infinity();
+
+    // / DEBUG
 
     for (int c = 0; c < _WAYPOINT_GRID_COLUMNS; c++)
         for (int r = 0; r < _WAYPOINT_GRID_ROWS; r++)
         {
             double wx = _waypointX[c][r];
             double wy = _waypointY[c][r];
+            double distance = gfx::distance(bot.x, bot.y, wx, wy);
 
+            if (distance > _WAYPOINT_CHECK_RADIUS) continue;
             if (_segmentIntersectsAnyEnemy(bot.x, bot.y, wx, wy)) continue;
 
-            double heat = _heatMap[c][r];
+            bool blocked = false;
 
-            for (int i = 0; i < BOTS_COUNT; i++)
-                if (i != bot.index) heat += _getBotHeat(wx, wy, i);
+            // for (const enemies::Enemy* e : closeEnemies)
+            // {
+            //     double ex = e->x, ey = e->y, er = e->radius;
+            //     blocked =
+            //         gfx::segmentIntersectsCircle(x, y, wx, wy, ex, ey, er);
 
-            double poiDist = gfx::distance(bot.x, bot.y, bot.poi.x, bot.poi.y);
-            double t = 1 - (poiDist / _maxDistance);
-            double minFactor = 1.0 - _POI_PRIORITY_FACTOR;
-            double maxFactor = 1.0;
-            double factor = lerp(minFactor, maxFactor, t);
+            //     if (blocked) break;
+            // }
 
-            heat *= factor;
+            if (blocked) continue;
+
+            double heat = 0.1;
+
+            // if (isPlayerClose) heat += _getPlayerHeat(wx, wy);
+
+            // for (Bot* b : closeBots)
+            //     heat += _getBotHeat(wx, wy, *b);
+
+            // for (const enemies::Enemy* e : closeEnemies)
+            //     heat += _getEnemyHeat(wx, wy, *e);
+
+            double poiDist = gfx::distance(wx, wy, bot.poi.x, bot.poi.y);
+            double t = poiDist / _maxDistance;
+            double poiFactor = lerp(1.0 - _POI_PRIORITY_FACTOR, 1.0, t);
+
+            heat *= poiFactor;
+
+            heatMap[c][r] = heat;
+
+            // DEBUG
+
+            if (heat != numeric_limits<double>::infinity())
+                maxHeat = max(maxHeat, heat);
+
+            // / DEBUG
 
             if (heat < coldestHeat)
             {
                 coldestHeat = heat;
-                bestWaypoint = {c, r};
+                bestWaypoint = {wx, wy};
             }
         }
+
+    // DEBUG
+
+    for (int c = 0; c < _WAYPOINT_GRID_COLUMNS; c++)
+        for (int r = 0; r < _WAYPOINT_GRID_ROWS; r++)
+        {
+            double wx = _waypointX[c][r];
+            double wy = _waypointY[c][r];
+            double alpha = 0;
+
+            if (heatMap[c][r] != numeric_limits<double>::infinity())
+                alpha = 1 - heatMap[c][r] / maxHeat;
+
+            Uint8 alpha8 = (Uint8)(255 * alpha * 0.5);
+
+            if (alpha8 == 0) continue;
+
+            SDL_Color color = {0, 0, 0, alpha8};
+
+            SDL_Rect rect = {
+                (int)(wx - heatCellWidth / 2), (int)(wy - heatCellHeight / 2),
+                (int)heatCellWidth, (int)heatCellHeight
+            };
+
+            gfx::setDrawColor(&color);
+            gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+            SDL_RenderFillRect(smocc::getRenderer(), &rect);
+        }
+
+    SDL_Color green = {0, 255, 0, 100};
+
+    gfx::setDrawColor(&green);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::fillCircle(bestWaypoint.first, bestWaypoint.second, 5);
+
+    // / DEBUG
 
     return bestWaypoint;
 }

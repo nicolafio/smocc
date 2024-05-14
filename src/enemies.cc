@@ -338,8 +338,9 @@ void _checkPlayerCollision(Enemy& enemy)
 
     if (collision)
     {
-        game::end();
-        ui::game_over::show();
+        // DEBUG
+        // game::end();
+        // ui::game_over::show();
     }
 }
 
