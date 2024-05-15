@@ -74,6 +74,13 @@ SDL_Cursor* systemCursor(SDL_SystemCursor cursor)
     return newCursor;
 }
 
+// Given line ab and point c, returns true if c is to the left of ab.
+bool isLeft(double ax, double ay, double bx, double by, double cx, double cy)
+{
+    // 🪄 magic https://stackoverflow.com/a/3461533
+    return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax) > 0;
+}
+
 double inverseLerp(double a, double b, double value)
 {
     return (value - a) / (b - a);

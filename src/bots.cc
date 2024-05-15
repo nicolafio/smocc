@@ -10,6 +10,12 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 
 // FIXME: buggy and laggy!
 
+// DEBUG
+
+#include <iostream>
+
+// / DEBUG
+
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -40,11 +46,6 @@ const unsigned int _WAYPOINTS_PER_BOT = 8;
 const double _POI_SPEED = 0.4;
 const double _POI_PRIORITY_FACTOR = 0.4; // 0.0 to 1.0
 
-const double _PLAYER_HEAT_FACTOR = 0.1;
-const double _BOT_HEAT_FACTOR = 0.3;
-const double _WORLD_EDGES_HEAT_FACTOR = 0.1;
-const double _ENEMY_HEAT_FACTOR = 1.0;
-
 const double _AIM_FULL_ROTATION_SPEED_MILLISECONDS = 1000;
 
 const double _AIM_ROTATION_RADIANS_PER_MILLISECOND =
@@ -52,7 +53,21 @@ const double _AIM_ROTATION_RADIANS_PER_MILLISECOND =
 
 SDL_Color _BOT_COLOR = SMOCC_FOREGROUND_COLOR;
 
+struct Target
+{
+    double x;
+    double y;
+    double xSpeed;
+    double ySpeed;
+};
+
 struct Aim
+{
+    double x;
+    double y;
+};
+
+struct Waypoint
 {
     double x;
     double y;
@@ -89,11 +104,9 @@ void _resetBot(Bot& bot);
 void _updateBotPosition(Bot& bot);
 void _updateBotPointOfInterest(Bot& bot);
 void _updateBotAim(Bot& bot);
-pair<unsigned int, unsigned int> _findBestWaypoint(Bot& bot);
-const enemies::Enemy* findBestTarget(Bot& bot);
-void getDirectionToAim(
-    Bot& bot, const enemies::Enemy& target, double* aimX, double* aimY
-);
+Waypoint _findBestWaypoint(Bot& bot);
+bool findBestTarget(Bot& bot, Target* bestTarget);
+Aim getBestAim(Bot& bot, Target& target);
 double getTargetPriority(Bot& bot, const enemies::Enemy& enemy);
 bool _segmentIntersectsAnyEnemy(double x1, double y1, double x2, double y2);
 bool _segmentIntersectsAnySelectEnemies(
@@ -196,7 +209,7 @@ void _activateBot(Bot& bot)
 
     SDL_GetWindowSize(window, &ww, &wh);
 
-    double aimRotationRadians = M_PI * rng::roll();
+    double aimRotationRadians = 2 * M_PI * rng::roll();
 
     double px = rng::roll() * ww;
     double py = rng::roll() * wh;
@@ -247,20 +260,18 @@ void _resetBot(Bot& bot)
 void _updateBotPosition(Bot& bot)
 {
     unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
-    pair<unsigned int, unsigned int> bestWaypoint = _findBestWaypoint(bot);
+    Waypoint waypoint = _findBestWaypoint(bot);
 
-    double wx = bestWaypoint.first;
-    double wy = bestWaypoint.second;
     double dx, dy;
 
-    gfx::direction(bot.x, bot.y, wx, wy, &dx, &dy);
+    gfx::direction(bot.x, bot.y, waypoint.x, waypoint.y, &dx, &dy);
 
     double botPositionChange = BOT_SPEED * deltaTimeMilliseconds;
 
-    if (botPositionChange > gfx::distance(bot.x, bot.y, wx, wy))
+    if (botPositionChange > gfx::distance(bot.x, bot.y, waypoint.x, waypoint.y))
     {
-        bot.x = wx;
-        bot.y = wy;
+        bot.x = waypoint.x;
+        bot.y = waypoint.y;
     }
     else
     {
@@ -320,45 +331,50 @@ void _updateBotPointOfInterest(Bot& bot)
 
 void _updateBotAim(Bot& bot)
 {
-    const enemies::Enemy* target = findBestTarget(bot);
+    Target target;
 
-    if (target == nullptr) return;
+    bool targetFound = findBestTarget(bot, &target);
+
+    if (!targetFound) return;
 
     double deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
 
-    double dx, dy;   // current aim direction
-    double tdx, tdy; // target aim direction
+    Aim bestAim = getBestAim(bot, target);
 
-    dx = bot.aim.x;
-    dy = bot.aim.y;
+    bool bestAimIsOverLeft =
+        gfx::isLeft(0, 0, bot.aim.x, bot.aim.y, bestAim.x, bestAim.y);
 
-    getDirectionToAim(bot, *target, &tdx, &tdy);
-
-    // 🪄 magic https://stackoverflow.com/a/3461533
-    bool targetIsOverLeft = dx * tdx - dy * tdy > 0;
-
-    double rotation = targetIsOverLeft ? -1 : 1;
+    double rotation = bestAimIsOverLeft ? -1 : 1;
 
     rotation *= _AIM_ROTATION_RADIANS_PER_MILLISECOND * deltaTimeMilliseconds;
 
-    gfx::rotate(dx, dy, rotation, &dx, &dy);
+    gfx::rotate(bot.aim.x, bot.aim.y, rotation, &bot.aim.x, &bot.aim.y);
 
-    bool targetWasOverLeft = targetIsOverLeft;
-    targetIsOverLeft = dx * tdx - dy * tdy > 0;
+    bool bestAimWasOverLeft = bestAimIsOverLeft;
 
-    bool sideFlipped = targetWasOverLeft != targetIsOverLeft;
+    bestAimIsOverLeft =
+        gfx::isLeft(0, 0, bot.aim.x, bot.aim.y, bestAim.x, bestAim.y);
+
+    bool sideFlipped = bestAimWasOverLeft != bestAimIsOverLeft;
 
     if (sideFlipped)
     {
-        dx = tdx;
-        dy = tdy;
+        bot.aim.x = bestAim.x;
+        bot.aim.y = bestAim.y;
     }
 
-    bot.aim.x = dx;
-    bot.aim.y = dy;
+    // DEBUG
+
+    SDL_Color red = {255, 0, 0, (Uint8)(255 * .5)};
+    gfx::setDrawColor(&red);
+    gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+    gfx::fillCircle(bot.x + bot.aim.x, bot.y + bot.aim.y, 5);
+    // cout << "tdx: " << tdx << ", tdy: " << tdy << endl;
+
+    // / DEBUG
 }
 
-pair<unsigned int, unsigned int> _findBestWaypoint(Bot& bot)
+Waypoint _findBestWaypoint(Bot& bot)
 {
     struct circle
     {
@@ -376,7 +392,7 @@ pair<unsigned int, unsigned int> _findBestWaypoint(Bot& bot)
     double playerDistance = gfx::distance(bot.x, bot.y, playerX, playerY);
     bool isPlayerClose = playerDistance < wcr;
 
-    pair<unsigned int, unsigned int> bestWaypoint = {bot.x, bot.y};
+    Waypoint bestWaypoint = {bot.x, bot.y};
     vector<circle> closeEntities;
 
     if (gfx::circlesOverlap(x, y, wcr, playerX, playerY, playerRadius))
@@ -591,10 +607,10 @@ pair<unsigned int, unsigned int> _findBestWaypoint(Bot& bot)
     return bestWaypoint;
 }
 
-const enemies::Enemy* findBestTarget(Bot& bot)
+bool findBestTarget(Bot& bot, Target* bestTarget)
 {
-    const enemies::Enemy* bestTarget = nullptr;
-    double bestPriority = 0;
+    double bestPriority = -1;
+    bool bestTargetFound = false;
 
     enemies::forEach(
         [&](auto e)
@@ -603,18 +619,34 @@ const enemies::Enemy* findBestTarget(Bot& bot)
 
             if (priority > bestPriority)
             {
+                bestTargetFound = true;
                 bestPriority = priority;
-                bestTarget = &e;
+                bestTarget->x = e.x;
+                bestTarget->y = e.y;
+                bestTarget->xSpeed = e.xSpeed;
+                bestTarget->ySpeed = e.ySpeed;
             }
         }
     );
 
-    return bestTarget;
+    // DEBUG
+
+    if (bestTargetFound)
+    {
+        SDL_Color red = {255, 0, 0, 50};
+        gfx::setDrawColor(&red);
+        gfx::setDrawBlendMode(SDL_BLENDMODE_BLEND);
+        gfx::fillCircle(
+            bestTarget->x, bestTarget->y, enemies::MAX_ENEMY_RADIUS + 5
+        );
+    }
+
+    // / DEBUG
+
+    return bestTargetFound;
 }
 
-void getDirectionToAim(
-    Bot& bot, const enemies::Enemy& target, double* dx, double* dy
-)
+Aim getBestAim(Bot& bot, Target& target)
 {
     // Finds the corrent orientation to take so that the fired bullets
     // will rendezvous with the target.
@@ -631,12 +663,9 @@ void getDirectionToAim(
     double c = sqr(target.x - bot.x) + sqr(target.y - bot.y);
     double disc = sqr(b) - 4 * a * c;
 
-    if (disc < 0)
-    {
-        // Projectile cann never arrive at target in time. Just aim at target.
-        gfx::direction(bot.x, bot.y, target.x, target.y, dx, dy);
-        return;
-    }
+    // If discriminant < 0, projectile can never arrive at target in time.
+    // In this case, leave aim unchanged.
+    if (disc < 0) return bot.aim;
 
     double t1 = (-b + sqrt(disc)) / (2 * a);
     double t2 = (-b - sqrt(disc)) / (2 * a);
@@ -646,10 +675,14 @@ void getDirectionToAim(
 
     double t = min(t1, t2);
 
-    double aimX = (target.x + target.xSpeed * t) - bot.x;
-    double aimY = (target.y + target.ySpeed * t) - bot.y;
+    Aim aim;
 
-    gfx::unit(aimX, aimY, dx, dy);
+    gfx::unit(
+        (target.x + target.xSpeed * t) - bot.x,
+        (target.y + target.ySpeed * t) - bot.y, &aim.x, &aim.y
+    );
+
+    return aim;
 }
 
 double getTargetPriority(Bot& bot, const enemies::Enemy& enemy)
