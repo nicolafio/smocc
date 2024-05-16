@@ -40,8 +40,9 @@ namespace smocc::bots
 
 using enum buffs::BuffType;
 
-const unsigned int _WAYPOINT_CHECK_RADIUS = enemies::MAX_ENEMY_RADIUS * 2;
+const unsigned int _ENTITY_CHECK_RADIUS = enemies::MAX_ENEMY_RADIUS * 2;
 const unsigned int _WAYPOINTS_PER_BOT = 8;
+const unsigned int _DIRECTION_CHANGE_DELAY_MILLISECONDS = 500;
 
 const double _POI_SPEED = 0.4;
 const double _POI_PRIORITY_FACTOR = 0.4; // 0.0 to 1.0
@@ -52,6 +53,13 @@ const double _AIM_ROTATION_RADIANS_PER_MILLISECOND =
     2 * M_PI / _AIM_FULL_ROTATION_SPEED_MILLISECONDS;
 
 SDL_Color _BOT_COLOR = SMOCC_FOREGROUND_COLOR;
+
+struct Entity
+{
+    double x;
+    double y;
+    double radius;
+};
 
 struct Target
 {
@@ -88,8 +96,15 @@ struct Bot
     unsigned int index;
     unsigned long long bulletSourceID;
 
+    vector<Entity> closeEntities;
+    bool closeEntitiesUpdated;
+
+    int directionChangeCooldown;
+
     double x;
     double y;
+    double xSpeed;
+    double ySpeed;
     bool active;
     bool reset;
     PointOfInterest poi;
@@ -101,6 +116,7 @@ void _reset();
 void _activateBot(Bot& bot);
 void _updateBot(Bot& bot);
 void _resetBot(Bot& bot);
+void _updateBotCloseEntities(Bot& bot);
 void _updateBotPosition(Bot& bot);
 void _updateBotPointOfInterest(Bot& bot);
 void _updateBotAim(Bot& bot);
@@ -209,6 +225,7 @@ void _activateBot(Bot& bot)
 
     SDL_GetWindowSize(window, &ww, &wh);
 
+    double rotationRadians = 2 * M_PI * rng::roll();
     double aimRotationRadians = 2 * M_PI * rng::roll();
 
     double px = rng::roll() * ww;
@@ -222,6 +239,8 @@ void _activateBot(Bot& bot)
     bot.active = true;
     bot.x = player::getXPosition();
     bot.y = player::getYPosition();
+    bot.xSpeed = BOT_SPEED * cos(rotationRadians);
+    bot.ySpeed = BOT_SPEED * -sin(rotationRadians);
     bot.poi.x = px;
     bot.poi.y = py;
     bot.poi.targetX = ptx;
@@ -230,8 +249,8 @@ void _activateBot(Bot& bot)
     bot.poi.speedY = _POI_SPEED * pdy;
     bot.aim.x = cos(aimRotationRadians);
     bot.aim.y = -sin(aimRotationRadians);
-
     bot.bulletSourceID = bullets::createSource();
+    bot.directionChangeCooldown = _DIRECTION_CHANGE_DELAY_MILLISECONDS;
 }
 
 void _updateBot(Bot& bot)
@@ -257,8 +276,22 @@ void _resetBot(Bot& bot)
     bot.reset = true;
 }
 
+void _updateBotCloseEntities(Bot& bot)
+{
+    // TODO: implement
+}
+
 void _updateBotPosition(Bot& bot)
 {
+    // TODO:
+    // * use xSpeed and ySpeed to change position.
+    // * change direction if the set of close entities differs from the last
+    // update, or if the direction change cooldown has expired.
+    //
+    // How can we determine this set of close entities? Entities are the player,
+    // the bots, and the enemies. Possible solution: unique ID... with hash and
+    // salt? And use a different salt for each entity type?
+
     unsigned int deltaTimeMilliseconds = game::getDeltaTimeMilliseconds();
     Waypoint waypoint = _findBestWaypoint(bot);
 
@@ -383,25 +416,25 @@ Waypoint _findBestWaypoint(Bot& bot)
 
     double x = bot.x;
     double y = bot.y;
-    double wcr = _WAYPOINT_CHECK_RADIUS;
+    double r = _ENTITY_CHECK_RADIUS;
 
     double coldestHeat = std::numeric_limits<double>::infinity();
     double playerX = player::getXPosition();
     double playerY = player::getYPosition();
     double playerRadius = player::PLAYER_CIRCLE_RADIUS;
     double playerDistance = gfx::distance(bot.x, bot.y, playerX, playerY);
-    bool isPlayerClose = playerDistance < wcr;
+    bool isPlayerClose = playerDistance < r;
 
     Waypoint bestWaypoint = {bot.x, bot.y};
     vector<circle> closeEntities;
 
-    if (gfx::circlesOverlap(x, y, wcr, playerX, playerY, playerRadius))
+    if (gfx::circlesOverlap(x, y, r, playerX, playerY, playerRadius))
         closeEntities.push_back({playerX, playerY, playerRadius});
 
     enemies::forEach(
         [&](auto e)
         {
-            if (gfx::circlesOverlap(x, y, wcr, e.x, e.y, e.radius))
+            if (gfx::circlesOverlap(x, y, r, e.x, e.y, e.radius))
                 closeEntities.push_back({e.x, e.y, e.radius});
         }
     );
@@ -410,11 +443,11 @@ Waypoint _findBestWaypoint(Bot& bot)
     {
         if (i == bot.index) continue;
         double bx = _bots[i].x, by = _bots[i].y, br = BOT_CIRCLE_RADIUS;
-        if (gfx::circlesOverlap(x, y, wcr, bx, by, br))
+        if (gfx::circlesOverlap(x, y, r, bx, by, br))
             closeEntities.push_back({bx, by, br});
     }
 
-    double waypointDistance = _WAYPOINT_CHECK_RADIUS;
+    double waypointDistance = r;
 
     for (circle e : closeEntities)
     {
@@ -450,7 +483,7 @@ Waypoint _findBestWaypoint(Bot& bot)
 
         double distance = gfx::distance(x, y, wx, wy);
 
-        if (distance > _WAYPOINT_CHECK_RADIUS) return;
+        if (distance > _ENTITY_CHECK_RADIUS) return;
 
         bool blocked = false;
 
@@ -470,7 +503,7 @@ Waypoint _findBestWaypoint(Bot& bot)
         for (circle e : closeEntities)
         {
             double d = gfx::distance(wx, wy, e.x, e.y) - e.r;
-            heat += _WAYPOINT_CHECK_RADIUS / d;
+            heat += _ENTITY_CHECK_RADIUS / d;
         }
 
         double poiDist = gfx::distance(wx, wy, bot.poi.x, bot.poi.y);
@@ -503,70 +536,6 @@ Waypoint _findBestWaypoint(Bot& bot)
         double wy = y + waypointDistance * -sin(angle);
         checkWaypoint(wx, wy);
     }
-
-    // for (double i = 0; i < _WAYPOINT_CHECK_RADIUS; i++)
-    //     for (double j = 0; j < _WAYPOINT_CHECK_RADIUS; j++)
-    //         for (int k : {-1, 1})
-    //             for (int l : {-1, 1})
-    //             {
-    //                 double wx = x + i * k;
-    //                 double wy = y + j * l;
-
-    //                 checkWaypoint(wx, wy);
-    //             }
-
-    // for (int c = 0; c < _WAYPOINT_GRID_COLUMNS; c++)
-    //     for (int r = 0; r < _WAYPOINT_GRID_ROWS; r++)
-    //     {
-    //         double wx = _waypointX[c][r];
-    //         double wy = _waypointY[c][r];
-    //         double distance = gfx::distance(bot.x, bot.y, wx, wy);
-
-    //         if (distance > _WAYPOINT_CHECK_RADIUS) continue;
-
-    //         bool blocked = false;
-
-    //         for (circle e : closeEntities)
-    //         {
-    //             if (gfx::segmentIntersectsCircle(x, y, wx, wy, e.x, e.y,
-    //             e.r))
-    //             {
-    //                 blocked = true;
-    //                 break;
-    //             }
-    //         }
-
-    //         if (blocked) continue;
-
-    //         double heat = 0.1;
-
-    //         for (circle e : closeEntities)
-    //         {
-    //             double d = gfx::distance(wx, wy, e.x, e.y) - e.r;
-    //             heat += _WAYPOINT_CHECK_RADIUS / d;
-    //         }
-
-    //         double poiDist = gfx::distance(wx, wy, bot.poi.x, bot.poi.y);
-    //         double t = poiDist / _maxDistance;
-    //         double poiFactor = lerp(1.0 - _POI_PRIORITY_FACTOR, 1.0, t);
-
-    //         heat *= poiFactor;
-
-    //         // DEBUG
-
-    //         // heatMap[c][r] = heat;
-
-    //         // if (heat != numeric_limits<double>::infinity())
-    //         //     maxHeat = max(maxHeat, heat);
-
-    //         // / DEBUG
-
-    //         if (heat < coldestHeat)
-    //         {
-    //             coldestHeat = heat;
-    //             bestWaypoint = {wx, wy};
-    //         }
-    //     }
 
     // DEBUG
 
