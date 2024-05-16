@@ -13,7 +13,8 @@ This file is part of SMOCC, licensed under GNU General Public License 3.0.
 namespace smocc::buffs
 {
 
-static double BUFF_DURATION_MILLISECONDS = 10000;
+// static double BUFF_DURATION_MILLISECONDS = 10000;
+static double BUFF_DURATION_MILLISECONDS = 1000000000; // DEBUG
 
 enum BuffType
 {

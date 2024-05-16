@@ -17,7 +17,8 @@ namespace smocc::bots
 
 const double BOT_SPEED = player::PLAYER_SPEED;
 const unsigned int BOT_CIRCLE_RADIUS = player::PLAYER_CIRCLE_RADIUS;
-const int BOTS_COUNT = 3;
+// const int BOTS_COUNT = 3;
+const int BOTS_COUNT = 1; // DEBUG
 
 void init();
 void update();

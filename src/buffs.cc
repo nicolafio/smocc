@@ -30,7 +30,8 @@ namespace smocc::buffs
 {
 
 static double _BUFF_DROP_OPACITY = 0.7;
-static double _BUFF_DROP_SPAWN_CHANCE = 0.15;
+// static double _BUFF_DROP_SPAWN_CHANCE = 0.15;
+static double _BUFF_DROP_SPAWN_CHANCE = 1.0; // DEBUG
 static double _BUFF_DROP_CHASE_SPEED = 0.2;
 static double _BUFF_DROP_MAGNETIC_RADIUS = 100;
 static double _BUFF_DROP_ROTATION_ANIMATION_RADIANS_PER_MILLISECOND = 0.01;
@@ -264,8 +265,7 @@ void _renderBuffDrop(BuffDrop& buffDrop)
 void _rollBuff()
 {
     // BuffType type = BUFF_TYPES[rng::rollInt(0, BUFF_TYPES_COUNT - 1)];
-
-    BuffType type = FRIENDLY_BOTS;
+    BuffType type = FRIENDLY_BOTS; // DEBUG
 
     _timeLeftMilliseconds[type] += BUFF_DURATION_MILLISECONDS;
 
